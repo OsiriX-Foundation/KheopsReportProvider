@@ -1,0 +1,179 @@
+<html>
+  <head>
+    <title>Report provider</title> 
+  </head>
+
+  <body onload="init()">
+    <h1>Report provider</h1>
+    <div id="user"></div>
+    <div id="config"></div>
+    <p></p>
+
+    <button onclick="httpGet(`${window.location.origin}/configuration_kheops`, 'info')">Configuration Kheops</button>
+    <button onclick="getStudy()">Study</button>
+    <button onclick="getSeries()">Series</button>
+    <button onclick="clearTag('info')">Clear</button>
+    <br/><br/>
+
+    <div id="info"></div>
+    <br/>
+
+    <div id="load"></div>
+    <select id="listSeries"></select>
+    <br />
+    <br />
+
+    <button onclick="postPdfStudy()">Post PDF</button>
+    <div id="post_studies"></div>
+    <br />
+
+    <button onclick="redirect()">Redirect</button>
+    <br />
+  </body>
+</html>
+<script>
+  function redirect() {
+    let resp = httpGet(`${window.location.origin}/redirect`)
+  }
+
+  function clearTag(tag) {
+    if (tag !== '') {
+      document.getElementById(tag).innerHTML = ""
+    }
+  }
+
+  function getStudy() {
+    let params = (new URL(document.location)).searchParams;
+    let studyUID = getCookie('studyUID');
+    httpGet(`${window.location.origin}/studies?studyUID=${studyUID}`, 'info')
+  }
+
+  function getSeries() {
+    console.log(document.cookie)
+    let params = (new URL(document.location)).searchParams;
+    let studyUID = getCookie('studyUID');
+    httpGet(`${window.location.origin}/series?studyUID=${studyUID}`, 'info')
+  }
+
+  function postPdfStudy() {
+    let params = (new URL(document.location)).searchParams;
+    let studyUID = getCookie('studyUID');
+    httpPost(`${window.location.origin}/post_pdf?studyUID=${studyUID}`, 'post_studies')
+  }
+
+  function postImgStudy() {
+    let params = (new URL(document.location)).searchParams;
+    let studyUID = getCookie('studyUID');
+    httpGet(`${window.location.origin}/post_studies?study_uid=${studyUID}`, 'post_studies')
+  }
+
+  function init() {
+    loadStudies()
+    loadUserinfo()
+    configInfo()
+  }
+
+  function configInfo() {
+    let confuri = getCookie('confuri');
+    document.getElementById('config').innerHTML = `
+      <p>
+        The configuration url: <b>${confuri}</b>
+      </p>
+    `
+  }
+
+  function loadUserinfo() {
+    let userInfo = JSON.parse(httpGet(`${window.location.origin}/user_info`))
+    let study = JSON.parse(httpGet(`${window.location.origin}/studies`))
+    document.getElementById('user').innerHTML = `<p>Welcome <b>${userInfo.name}</b></p>
+      <p>You have access at the study 
+        <b>${study[0]['00081030'] !== undefined ? study[0]['00081030']['Value'][0] : study[0]['0020000D']['Value'][0]}</b>
+        with the patient name 
+        <b>${study[0]['00100010']['Value'][0]['Alphabetic']}</b></p>
+    `
+  }
+
+  function loadStudies() {
+    let params = (new URL(document.location)).searchParams;
+    let studyUID = getCookie('studyUID');
+    let series = JSON.parse(httpGet(`${window.location.origin}/series?studyUID=${studyUID}`))
+    series.forEach(val => {
+      var option = document.createElement('option');
+      if ('0008103E' in val) {
+        option.text = val['0008103E']['Value'][0]
+      } else {
+        option.text = val['0020000E']['Value'][0];
+      }
+      document.querySelector('#listSeries').add(option, null);
+    })
+  }
+
+  function httpPost(theUrl, tag='') {
+      if (tag !== '') {
+        document.getElementById(tag).innerHTML = ""
+      }
+      var xmlHttp = new XMLHttpRequest();
+      xmlHttp.open( "POST", theUrl, false ); // false for synchronous request
+      xmlHttp.send( null );
+      var response = xmlHttp.responseText;
+      if (tag !== '') {
+        document.getElementById(tag).innerHTML = response
+      }
+      return response;
+  }
+
+  function httpGet(theUrl, tag='') {
+      if (tag !== '') {
+        document.getElementById(tag).innerHTML = ""
+      }
+      var xmlHttp = new XMLHttpRequest();
+      xmlHttp.open( "GET", theUrl, false ); // false for synchronous request
+      xmlHttp.send( null );
+      var response = xmlHttp.responseText;
+      if (tag !== '') {
+        document.getElementById(tag).innerHTML = response
+      }
+      let responseJSON = JSON.parse(response)
+      if ('redirect_uri' in responseJSON) {
+        window.location.href = responseJSON['redirect_uri']
+      }
+      return response;
+  }
+
+  var form = document.forms.namedItem("fileinfo");
+  form.addEventListener('submit', function(ev) {
+    var oOutput = document.getElementById("post_studies"),
+        oData = new FormData(form);
+
+    oData.append("CustomField", "Données supplémentaires");
+
+    var oReq = new XMLHttpRequest();
+    oReq.open("POST", `${window.location.origin}/post_studies`, true);
+    oReq.onload = function(oEvent) {
+      if (oReq.status == 200) {
+        oOutput.innerHTML = "Envoyé !";
+      } else {
+        oOutput.innerHTML = "Erreur " + oReq.status + " lors de la tentative d’envoi du fichier.<br \/>";
+      }
+    };
+
+    oReq.send(oData);
+    ev.preventDefault();
+  }, false);
+
+  function getCookie(cname) {
+  var name = cname + "=";
+  var decodedCookie = decodeURIComponent(document.cookie);
+  var ca = decodedCookie.split(';');
+  for(var i = 0; i <ca.length; i++) {
+    var c = ca[i];
+    while (c.charAt(0) == ' ') {
+      c = c.substring(1);
+    }
+    if (c.indexOf(name) == 0) {
+      return c.substring(name.length, c.length);
+    }
+  }
+  return "";
+}
+</script>

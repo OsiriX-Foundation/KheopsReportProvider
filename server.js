@@ -95,7 +95,7 @@ function main () {
         break;
       case '/series':
         new Promise(function (resolve, reject) {
-          cookie = session.readCookie(request.headers.cookie)
+          let cookie = session.readCookie(request.headers.cookie, request.headers['x-xsrf-token'])
           if (cookie === -1) {
             reject("Not authorized")
           }
@@ -119,7 +119,7 @@ function main () {
         break;
       case '/studies':
         new Promise(function (resolve, reject) {
-          let cookie = session.readCookie(request.headers.cookie)
+          let cookie = session.readCookie(request.headers.cookie, request.headers['x-xsrf-token'])
           if (cookie === -1) {
             reject("Not authorized")
           }
@@ -141,7 +141,7 @@ function main () {
         break;
       case '/configuration_kheops':
         new Promise(function (resolve, reject) {
-          cookie = session.readCookie(request.headers.cookie)
+          let cookie = session.readCookie(request.headers.cookie, request.headers['x-xsrf-token'])
           if (cookie === -1) {
             reject("Not authorized")
           }
@@ -159,7 +159,7 @@ function main () {
         break;
       case '/user_info':
         new Promise(function (resolve, reject) {
-          let cookie = session.readCookie(request.headers.cookie)
+          let cookie = session.readCookie(request.headers.cookie, request.headers['x-xsrf-token'])
           if (cookie === -1) {
             reject("Not authorized")
           }
@@ -182,7 +182,7 @@ function main () {
         break;
       case '/redirect':
         new Promise(function (resolve, reject) {
-          let cookie = session.readCookie(request.headers.cookie)
+          let cookie = session.readCookie(request.headers.cookie, request.headers['x-xsrf-token'])
           if (cookie === -1) {
             reject("Not authorized")
           }
@@ -202,7 +202,7 @@ function main () {
       case '/post_pdf':
         new Promise(function (resolve, reject) {
           let studyUID_postPDF = tools.getParameterByName('studyUID', query)
-          let cookie = session.readCookie(request.headers.cookie)
+          let cookie = session.readCookie(request.headers.cookie, request.headers['x-xsrf-token'])
           if (cookie === -1) {
             reject("Not authorized")
           }
@@ -218,6 +218,12 @@ function main () {
             reject(err)
           })
 
+        }).catch(err => {
+          if (err === 'Not authorized') {
+            tools.responseTextPlain(response, 401, err)
+          } else {
+            tools.responseTextPlain(response, 500, err)
+          }
         })
         break;
       default:
@@ -249,16 +255,20 @@ function setReport(response, filename, query) {
     axios.get(urlInformations.href).then(res => {
       let currentConfiguration = res.data
       tokens.getTokenSR(currentConfiguration, privKey, jwkID, myaddr, audience, accessCode).then(res => {
+
         let dataAccessToken = res.data
         let setCookie = session.generateCookie(urlInformations.href, studyUID, dataAccessToken)
-        // tools.readFileWeb(filename, response, setCookie)
         let headers = {}
+
         if (setCookie !== '') {
           headers['Set-Cookie'] = setCookie['cookie']
           headers['Location'] = `${myaddr}/reportprovider`
+          response.writeHead(302, headers);
+          response.end();
+        } else {
+          tools.responseTextPlain(response, 500, 'Cant create an access')
         }
-        response.writeHead(302, headers);
-        response.end();
+
       }).catch(err => {
         if (err.response !== undefined) {
           console.log(err.response.data)

@@ -112,8 +112,10 @@
       if (tag !== '') {
         document.getElementById(tag).innerHTML = ""
       }
+      let hash = getCookie('hash')
       var xmlHttp = new XMLHttpRequest();
       xmlHttp.open( "POST", theUrl, false ); // false for synchronous request
+      xmlHttp.setRequestHeader('X-XSRF-TOKEN', hash)
       xmlHttp.send( null );
       var response = xmlHttp.responseText;
       if (tag !== '') {
@@ -126,8 +128,10 @@
       if (tag !== '') {
         document.getElementById(tag).innerHTML = ""
       }
+      let hash = getCookie('hash')
       var xmlHttp = new XMLHttpRequest();
       xmlHttp.open( "GET", theUrl, false ); // false for synchronous request
+      xmlHttp.setRequestHeader('X-XSRF-TOKEN', hash)
       xmlHttp.send( null );
       var response = xmlHttp.responseText;
       if (tag !== '') {

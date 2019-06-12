@@ -14,12 +14,12 @@ module.exports = {
       'sessionState': sessionState
     }
   },
-  readCookie: function(cookieToParse) {
+  readCookie: function(cookieToParse, hashedToken) {
     let cookie = parseCookies(cookieToParse)
-    if (cookie.accesstoken !== undefined) {
+    if (cookie.accesstoken !== undefined && hash !== undefined) {
       cookie.decryptAccessToken = decrypt(cookie.accesstoken)
       const hashToken = hash(cookie.decryptAccessToken)
-      if (hashToken === cookie.hash) {
+      if (hashToken === hashedToken) {
         return cookie
       } else {
         return -1

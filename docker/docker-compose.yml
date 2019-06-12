@@ -1,7 +1,7 @@
 version: "3.1"
 services:
   reportprovider:
-    image: reportprovider:test
+    image: osirixfoundation/kheops-report-provider:cookie-secure
     container_name: reportprovider
     env_file: docker-compose.env
     restart: always

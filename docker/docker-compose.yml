@@ -5,6 +5,9 @@ services:
     container_name: reportprovider
     env_file: docker-compose.env
     restart: always
+    secrets:
+      - privkey.pem
+
   nginx:
     image: nginx:1.14-alpine
     container_name: nginx
@@ -24,3 +27,5 @@ secrets:
     file: secrets/privkey1.pem
   fullchain1.pem:
     file: secrets/fullchain1.pem
+  privkey.pem:
+    file: secrets/privkey.pem

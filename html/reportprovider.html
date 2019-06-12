@@ -74,10 +74,14 @@
   }
 
   function configInfo() {
-    let confuri = getCookie('confuri');
+    let confuri = new URL(getCookie('confuri'));
+    let confinfo = JSON.parse(httpGet(`${window.location.origin}/configuration_kheops`))
     document.getElementById('config').innerHTML = `
       <p>
-        The configuration url: <b>${confuri}</b>
+        The host name: <b>${confuri.hostname}</b>
+      </p>
+      <p>
+        The client ID: <b>${confinfo.client_id}</b>
       </p>
     `
   }

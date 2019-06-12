@@ -137,7 +137,6 @@ function main () {
           tools.responseJSON(response, 200, JSON.stringify(res.data))
         }).catch(err => {
           tools.responseTextPlain(response, 500, err)
-          console.log(err)
         })
         break;
       case '/configuration_kheops':

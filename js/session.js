@@ -16,10 +16,14 @@ module.exports = {
   },
   readCookie: function(cookieToParse) {
     let cookie = parseCookies(cookieToParse)
-    cookie.decryptAccessToken = decrypt(cookie.accesstoken)
-    const hashToken = hash(cookie.decryptAccessToken)
-    if (hashToken === cookie.hash) {
-      return cookie
+    if (cookie.accesstoken !== undefined) {
+      cookie.decryptAccessToken = decrypt(cookie.accesstoken)
+      const hashToken = hash(cookie.decryptAccessToken)
+      if (hashToken === cookie.hash) {
+        return cookie
+      } else {
+        return -1
+      }
     } else {
       return -1
     }

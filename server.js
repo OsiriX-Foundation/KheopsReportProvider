@@ -262,7 +262,7 @@ function setReport(response, filename, query) {
 
         if (setCookie !== '') {
           headers['Set-Cookie'] = setCookie['cookie']
-          headers['Location'] = `${myaddr}/reportprovider`
+          headers['Location'] = `${myaddr}/reportprovider?state=${setCookie.state}`
           response.writeHead(302, headers);
           response.end();
         } else {

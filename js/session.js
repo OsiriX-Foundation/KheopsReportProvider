@@ -7,18 +7,19 @@ const secret = crypto.randomBytes(64);
 module.exports = {
   generateCookie: function(conf_uri, studyUID, tokenSR) {
     const encryptToken = encrypt(tokenSR.access_token)
-    const hashToken = hash(tokenSR.access_token)
+    const hashToken = hash(tokenSR.access_token + conf_uri)
     const sessionState = generateSessionState()
     return {
-      'cookie': [`studyUID=${studyUID}`, `confuri=${conf_uri}`, `hash=${hashToken}`,`accesstoken=${encryptToken}; id=${sessionState}; Expires=${new Date(Date.now() + 3600000).toUTCString()}; HttpOnly`],
-      'sessionState': sessionState
+      'cookie': [`studyUID=${studyUID}`, `confuri=${conf_uri}`, `accesstoken=${encryptToken}; id=${sessionState}; Expires=${new Date(Date.now() + 3600000).toUTCString()}; HttpOnly`],
+      'sessionState': sessionState,
+      'state': hashToken
     }
   },
   readCookie: function(cookieToParse, hashedToken) {
     let cookie = parseCookies(cookieToParse)
-    if (cookie.accesstoken !== undefined && hash !== undefined) {
+    if (cookie.accesstoken !== undefined && hashedToken !== undefined) {
       cookie.decryptAccessToken = decrypt(cookie.accesstoken)
-      const hashToken = hash(cookie.decryptAccessToken)
+      const hashToken = hash(cookie.decryptAccessToken + cookie.confuri)
       if (hashToken === hashedToken) {
         return cookie
       } else {
@@ -57,7 +58,7 @@ function parseCookies (rc) {
 }
 
 function encrypt(value) {
-  let cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(key), iv);
+  let cipher = crypto.createCipheriv(algorithm, Buffer.from(key), iv);
   let encrypted = cipher.update(value);
   encrypted = Buffer.concat([encrypted, cipher.final()]);
   return encrypted.toString('hex');
@@ -65,7 +66,7 @@ function encrypt(value) {
 
 function decrypt(value) {
   let encryptedText = Buffer.from(value, 'hex');
-  let decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(key), iv);
+  let decipher = crypto.createDecipheriv(algorithm, Buffer.from(key), iv);
   let decrypted = decipher.update(encryptedText);
   decrypted = Buffer.concat([decrypted, decipher.final()]);
   return decrypted.toString();

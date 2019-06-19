@@ -254,7 +254,8 @@ function setReport(response, filename, query) {
   if (urlInformations.hostname && urlInformations.protocol && urlInformations.path) {
     axios.get(urlInformations.href).then(res => {
       let currentConfiguration = res.data
-      tokens.getTokenSR(currentConfiguration, privKey, jwkID, audience, accessCode, `${scheme}://${host}${port}/report.html`).then(res => {
+      var urlPort = port === '80' || port === '443' ? '' : ':' + port
+      tokens.getTokenSR(currentConfiguration, privKey, jwkID, audience, accessCode, `${scheme}://${host}${urlPort}/report.html`).then(res => {
 
         let dataAccessToken = res.data
         let setCookie = session.generateCookie(urlInformations.href, studyUID, dataAccessToken)

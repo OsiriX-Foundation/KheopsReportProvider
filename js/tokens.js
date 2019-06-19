@@ -2,9 +2,9 @@ var axios = require("axios");
 var tools = require('./tools');
 
 module.exports = {
-    getTokenSR: function(configuration, privKey, jwkID, issuer, audience, accessCode) {
+    getTokenSR: function(configuration, privKey, jwkID, audience, accessCode) {
         const clientID = configuration.client_id
-        const signToken = tools.signToken(privKey, clientID, issuer, audience, 120, jwkID)
+        const signToken = tools.signToken(privKey, clientID, audience, 120, jwkID)
         const target = configuration.token_endpoint
         const requestBody = {
           grant_type: 'authorization_code',

@@ -3,10 +3,10 @@ var fs = require("fs"),
     path = require("path");
 
 module.exports = {
-    signToken: function (privKey, clientID, issuer, audience, exp, jwkID) {
+    signToken: function (privKey, clientID, audience, exp, jwkID) {
         var optionsJWT = {
           algorithm: 'RS256',
-          issuer: issuer,
+          issuer: clientID,
           subject: clientID,
           audience: audience,
           jwtid: jwkID.toString(),

@@ -1,10 +1,17 @@
 version: "3.1"
 services:
   reportprovider:
-    image: reportprovider:test
+    image: osirixfoundation/kheops-report-provider:cookie-secure
     container_name: reportprovider
     env_file: docker-compose.env
     restart: always
+    extra_hosts:
+      - "demo.kheops.online:10.5.5.32"
+      - "test2.kheops.online:10.5.5.28"
+      - "test.kheops.online:10.5.5.27"
+      - "lavim.kheops.online:10.5.7.3"
+      - "aneux.kheops.online:10.5.7.9"
+
     secrets:
       - privkey.pem
 

@@ -12,7 +12,8 @@ module.exports = {
       var port = port === '80' || port === '443' ? '' : ':' + port
       var respJSON = JSON.stringify({
         'jwks_uri': `${scheme}://${host}${port}/certs`,
-        'token_endpoint_auth_method': 'kheops_private_key_jwt',
+        'response_type': 'code',
+        'token_endpoint_auth_method': 'private_key_jwt',
         'token_endpoint_auth_signing_alg': 'RS256',
         'redirect_uri': `${scheme}://${host}${port}/report.html`,
         'client_name': 'Kheops Report Provider',

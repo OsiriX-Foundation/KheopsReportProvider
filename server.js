@@ -29,7 +29,7 @@ var host
 if (process.env.HOST !== undefined) {
   host = process.env.HOST;
 } else {
-  host = '192.168.1.157'
+  host = '129.194.108.70'
 }
 var port
 if (process.env.PORT !== undefined) {

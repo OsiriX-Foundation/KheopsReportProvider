@@ -29,7 +29,7 @@ var host
 if (process.env.HOST !== undefined) {
   host = process.env.HOST;
 } else {
-  host = '129.194.108.70'
+  host = '192.168.1.157'
 }
 var port
 if (process.env.PORT !== undefined) {
@@ -234,6 +234,7 @@ function setReport(response, filename, query) {
   var urlConfig = tools.getParameterByName('conf_uri', query)
   var urlReturn = tools.getParameterByName('return_uri', query)
   var accessCode = tools.getParameterByName('code', query)
+  var clientID = tools.getParameterByName('client_id', query)
   var studyUID = tools.getParameterByName('studyUID', query)
   let urlInformations = parseUrlConfig(response, urlConfig)
   if (urlInformations === -1) {
@@ -244,7 +245,7 @@ function setReport(response, filename, query) {
     axios.get(urlInformations.href).then(res => {
       let currentConfiguration = res.data
       var urlPort = port === '80' || port === '443' ? '' : ':' + port
-      tokens.getTokenSR(currentConfiguration, privKey, jwkID, accessCode, `${scheme}://${host}${urlPort}/report.html`).then(res => {
+      tokens.getTokenSR(currentConfiguration, privKey, clientID, jwkID, accessCode, `${scheme}://${host}${urlPort}/report.html`).then(res => {
 
         let dataAccessToken = res.data
         let setCookie = session.generateCookie(urlInformations.href, urlReturn, studyUID, dataAccessToken)

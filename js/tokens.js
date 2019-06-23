@@ -2,8 +2,7 @@ var axios = require("axios");
 var tools = require('./tools');
 
 module.exports = {
-    getTokenSR: function(configuration, privKey, jwkID, accessCode, redirect_uri) {
-        const clientID = configuration.client_id
+    getTokenSR: function(configuration, privKey, clientID, jwkID, accessCode, redirect_uri) {
         const signToken = tools.signToken(privKey, clientID, configuration.token_endpoint, 120, jwkID)
         const target = configuration.token_endpoint
         const requestBody = {

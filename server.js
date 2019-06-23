@@ -181,22 +181,11 @@ function main () {
         })
         break;
       case '/redirect':
-        new Promise(function (resolve, reject) {
-          let cookie = session.readCookie(request.headers.cookie, request.headers['x-xsrf-token'])
-          if (cookie === -1) {
-            reject("Not authorized")
-          }
-          getConfFromCookie(cookie).then(res => {
-            resolve(res)
-          }).catch(err => {
-            reject(err)
-          })
-        }).then(res => {
-          tools.responseJSON(response, 200, JSON.stringify({ 'redirect_uri': res.data.return_uri }))
-        }).catch(err => {
-          tools.responseTextPlain(response, 500, err)
-          console.log(err)
-        })
+        let cookie = session.readCookie(request.headers.cookie, request.headers['x-xsrf-token'])
+        if (cookie === -1) {
+          reject("Not authorized")
+        }
+        tools.responseJSON(response, 200, JSON.stringify({ 'redirect_uri': cookie.returnuri }))
 
         break;
       case '/post_pdf':
@@ -243,6 +232,7 @@ function setReport(response, filename, query) {
     return -1
   }
   var urlConfig = tools.getParameterByName('conf_uri', query)
+  var urlReturn = tools.getParameterByName('return_uri', query)
   var accessCode = tools.getParameterByName('code', query)
   var studyUID = tools.getParameterByName('studyUID', query)
   let urlInformations = parseUrlConfig(response, urlConfig)
@@ -257,7 +247,7 @@ function setReport(response, filename, query) {
       tokens.getTokenSR(currentConfiguration, privKey, jwkID, accessCode, `${scheme}://${host}${urlPort}/report.html`).then(res => {
 
         let dataAccessToken = res.data
-        let setCookie = session.generateCookie(urlInformations.href, studyUID, dataAccessToken)
+        let setCookie = session.generateCookie(urlInformations.href, urlReturn, studyUID, dataAccessToken)
         let headers = {}
 
         if (setCookie !== '') {

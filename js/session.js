@@ -5,12 +5,12 @@ const iv = crypto.randomBytes(16);
 const secret = crypto.randomBytes(64);
 
 module.exports = {
-  generateCookie: function(conf_uri, studyUID, tokenSR) {
+  generateCookie: function(conf_uri, return_uri, studyUID, tokenSR) {
     const encryptToken = encrypt(tokenSR.access_token)
-    const hashToken = hash(tokenSR.access_token + conf_uri)
+    const hashToken = hash(tokenSR.access_token + conf_uri + return_uri)
     const sessionState = generateSessionState()
     return {
-      'cookie': [`studyUID=${studyUID}`, `confuri=${conf_uri}`, `accesstoken=${encryptToken}; id=${sessionState}; Expires=${new Date(Date.now() + 3600000).toUTCString()}; HttpOnly`],
+      'cookie': [`studyUID=${studyUID}`, `confuri=${conf_uri}`, `returnuri=${return_uri}`, `accesstoken=${encryptToken}; id=${sessionState}; Expires=${new Date(Date.now() + 3600000).toUTCString()}; HttpOnly`],
       'sessionState': sessionState,
       'state': hashToken
     }
@@ -19,7 +19,7 @@ module.exports = {
     let cookie = parseCookies(cookieToParse)
     if (cookie.accesstoken !== undefined && hashedToken !== undefined) {
       cookie.decryptAccessToken = decrypt(cookie.accesstoken)
-      const hashToken = hash(cookie.decryptAccessToken + cookie.confuri)
+      const hashToken = hash(cookie.decryptAccessToken + cookie.confuri + cookie.returnuri)
       if (hashToken === hashedToken) {
         return cookie
       } else {

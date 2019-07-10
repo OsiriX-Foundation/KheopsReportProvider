@@ -19,7 +19,7 @@ module.exports = {
     let cookie = parseCookies(cookieToParse)
     if (cookie.accesstoken !== undefined && hashedToken !== undefined) {
       cookie.decryptAccessToken = decrypt(cookie.accesstoken)
-      const hashToken = hash(cookie.decryptAccessToken + cookie.confuri + cookie.clientID + cookie.returnuri)
+      const hashToken = hash(cookie.decryptAccessToken + cookie.confuri + cookie.clientid + cookie.returnuri)
       if (hashToken === hashedToken) {
         return cookie
       } else {

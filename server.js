@@ -248,7 +248,7 @@ function setReport(response, filename, query) {
       tokens.getTokenSR(currentConfiguration, privKey, clientID, jwkID, accessCode, `${scheme}://${host}${urlPort}/report.html`).then(res => {
 
         let dataAccessToken = res.data
-        let setCookie = session.generateCookie(urlInformations.href, urlReturn, studyUID, dataAccessToken)
+        let setCookie = session.generateCookie(urlInformations.href, urlReturn, studyUID, clientID, dataAccessToken)
         let headers = {}
 
         if (setCookie !== '') {

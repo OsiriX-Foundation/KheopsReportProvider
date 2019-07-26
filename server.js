@@ -69,7 +69,7 @@ function main () {
         break;
       case '/.well-known/kheops-wsi-viewer-configuration':
           new Promise(function (resolve, reject) {
-            resolve(configuration.JSON_kheopsConfiguration(scheme, host, port))
+            resolve(configuration.JSON_kheopsWSIViewerConfiguration(scheme, host, port))
           }).then(res => {
             tools.responseJSON(response, 200, res)
           })

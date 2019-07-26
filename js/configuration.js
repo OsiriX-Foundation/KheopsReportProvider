@@ -24,7 +24,7 @@ module.exports = {
       });
       return respJSON
     },
-    JSON_kheopsConfiguration: function(scheme, host, port = '80') {
+    JSON_kheopsWSIViewerConfiguration: function(scheme, host, port = '80') {
       var port = port === '80' || port === '443' ? '' : ':' + port
       var respJSON = JSON.stringify({
         'jwks_uri': `${scheme}://${host}${port}/certs`,

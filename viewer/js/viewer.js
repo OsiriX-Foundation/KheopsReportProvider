@@ -36,6 +36,12 @@ const TOTAL_PIXEL_MATRIX_COLUMNS_TAG = '00480006';
 // Total number of rows in pixel matrix
 const TOTAL_PIXEL_MATRIX_ROWS_TAG = '00480007';
 
+const SERIES_DATE = '00080021'
+const SERIES_INSTANCES_NUMBER = '00200013'
+const SERIES_MODALITY = '00080060'
+const SERIES_DESCRIPTION = '0008103E'
+const SERIES_RELATED_INSTANCES = '00201209'
+
 let viewer = null;
 let fragmentParameters = {};
 let configurationValue = {};
@@ -83,7 +89,7 @@ function kheopsUserInfo() {
 }
 
 function kheopsLoadSeries () {
-  const studyPath = `${STUDIES_PATH}/${fragmentParameters.studyUID}${SERIES_PATH}`;
+  const studyPath = `${STUDIES_PATH}/${fragmentParameters.studyUID}${SERIES_PATH}?includefield=all`;
   $.ajax({
     headers: {
       'Authorization': `${fragmentParameters.token_type} ${fragmentParameters.access_token}`
@@ -99,12 +105,98 @@ function kheopsLoadSeries () {
       $('#series-select').empty();
       const select = document.getElementById("series-select");
       for (let i = 0; i < studies.length; i++) {
+        /*
         const option = document.createElement('option');
         option.innerText = 'Serie ' + (i + 1);
         option.value = studies[i][SERIES_INSTANCE_UID_TAG].Value[0];
         select.appendChild(option);
+        loadInstancesInSeriesVignette(fragmentParameters.studyUID, studies[i][SERIES_INSTANCE_UID_TAG].Value[0])
+        */
+        if (studies[i][SERIES_MODALITY].Value[0] === 'SM') {
+          let newRow = `<div class='row border clickable' onclick='loadInstancesInSeries("${studies[i][SERIES_INSTANCE_UID_TAG].Value[0]}")'>`
+          let newCol = ''
+          if (studies[i][SERIES_DESCRIPTION] !== undefined) {
+            newCol += `
+              <div class='col-12'>
+                <b class='breakall'>${studies[i][SERIES_DESCRIPTION].Value[0]}</b>
+              </div>
+            `
+          }
+          if (studies[i][SERIES_DATE] !== undefined) {
+            newCol += `
+              <div class='col-12'>
+                <b class='breakall'>${studies[i][SERIES_DATE].Value[0]}</b>
+              </div>
+            `
+          }
+          if (studies[i][SERIES_MODALITY] !== undefined) {
+            newCol += `
+              <div class='col-12'>
+                <b class='breakall'>${studies[i][SERIES_MODALITY].Value[0]}</b>
+              </div>
+            `
+          }
+          if (studies[i][SERIES_RELATED_INSTANCES] !== undefined) {
+            newCol += `
+              <div class='col-12'>
+                <b class='breakall'>${studies[i][SERIES_RELATED_INSTANCES].Value[0]}</b>
+              </div>
+            `
+          }
+          if (newCol === '') {
+            newCol += `
+              <div class='col-12'>
+                <b class='breakall'>${studies[i][SERIES_INSTANCES_NUMBER].Value[0]}</b>
+              </div>
+            `
+          }
+          newRow += `${newCol}</div>`
+          $('#testFor').append(newRow)
+        }
       }
-      loadInstancesInSeries($('#series-select option:selected').val())
+      // loadInstancesInSeries($('#series-select option:selected').val())
+      loadInstancesInSeries(studies[0][SERIES_INSTANCE_UID_TAG].Value[0])
+    }
+  });
+}
+
+function test(serieUID) {
+  console.log(serieUID)
+}
+
+function loadInstancesInSeriesVignette (studyUID, serieUID) {
+  if(serieUID.length == 0) return;
+  const instancesPath = `${STUDIES_PATH}/${studyUID}${SERIES_PATH}/${serieUID}/instances`
+  $.ajax({
+    headers: {
+      'Authorization': `${fragmentParameters.token_type} ${fragmentParameters.access_token}`
+    },
+    url: `${configurationValue.dicomweb_endpoint}${instancesPath}`,
+    error: function(jqXHR) {
+      alert(
+          'Error - retrieving instances failed: ' +
+          jqXHR.responseJSON[0].error.code + ' ' +
+          jqXHR.responseJSON[0].error.message);
+    },
+    success: function(instances) {
+      let instanceUID = instances[instances.length-1][SOP_INSTANCE_UID_TAG].Value[0]
+      let url = `${configurationValue.dicomweb_endpoint}/wado?studyUID=${studyUID}&seriesUID=${serieUID}&objectUID=${instanceUID}&requestType=WADO&frameNumber=1`
+      $.ajax({
+        headers: {
+          'Accept': 'image/jpeg',
+          'Authorization': `${fragmentParameters.token_type} ${fragmentParameters.access_token}`
+        },
+        url: url,
+        error: function(jqXHR) {
+          alert(
+              'Error - retrieving instances failed: ' +
+              jqXHR.responseJSON[0].error.code + ' ' +
+              jqXHR.responseJSON[0].error.message);
+        },
+        success: function(image) {
+          console.log("IMAGETTE !!!")
+        }
+      });
     }
   });
 }

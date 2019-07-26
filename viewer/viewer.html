@@ -27,14 +27,20 @@
 </head>
 
 <body onload="onLoadInitKheops()">
-<div>
-  <div id="auth-status"></div>
-  <div class="selector-container">
-    <p><b>Series</b></p>
-    <select id="series-select" class="dicom-select" onchange="loadInstancesInSeries(this.value)"></select>
+  <div class="container-fluid align-items-stretch">
+    <div class="row">
+      <div class="col-sm-12 col-md-2 col-lg-2 mb-2 mt-2">
+        <button class=" bg-faded d-sm-block d-md-none btn btn-primary" type="button" data-toggle="collapse" data-target="#testFor" aria-expanded="false" aria-controls="testFor">
+          Show series
+        </button>
+        <div class="container-fluid collapse show" id="testFor"></div>
+
+      </div>
+      <div class="col-12 col-sm-12 col-md-10 col-lg-10">
+        <div id="openseadragon" class="map"></div>
+      </div>
+    </div>
   </div>
-  <div id="openseadragon" class="map"></div>
-</div>
 </body>
 <script>
 </script>

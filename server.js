@@ -29,7 +29,7 @@ var host
 if (process.env.HOST !== undefined) {
   host = process.env.HOST;
 } else {
-  host = '129.194.108.70'
+  host = '10.195.108.50'
 }
 var port
 if (process.env.PORT !== undefined) {
@@ -59,8 +59,6 @@ function main () {
         }).then(res => {
           tools.responseJSON(response, 200, res)
         })
-
-
         break;
       case '/.well-known/kheops-report-configuration':
         new Promise(function (resolve, reject) {
@@ -69,6 +67,13 @@ function main () {
           tools.responseJSON(response, 200, res)
         })
         break;
+      case '/.well-known/kheops-wsi-viewer-configuration':
+          new Promise(function (resolve, reject) {
+            resolve(configuration.JSON_kheopsConfiguration(scheme, host, port))
+          }).then(res => {
+            tools.responseJSON(response, 200, res)
+          })
+          break;
       case '/certs':
         new Promise(function (resolve, reject) {
           resolve(configuration.JSON_cert(jwk))
@@ -87,8 +92,15 @@ function main () {
         }).catch(err => {
           console.log(err)
         })
-
         break;
+      case '/wsi-viewer':
+        let wsiViewerFile = path.join(process.cwd(), '/viewer/viewer.html')
+        tools.readFileWeb(wsiViewerFile, response)
+        break;
+      case (uri.match('^/viewer') || {}).input:
+        let wsiViewerScriptFile = path.join(process.cwd(), `/viewer${uri}`)
+        tools.readFileWeb(wsiViewerScriptFile, response)
+        break
       case '/reportprovider':
         let reportFile = path.join(process.cwd(), '/html/reportprovider.html')
         tools.readFileWeb(reportFile, response)

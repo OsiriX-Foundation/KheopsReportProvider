@@ -11,6 +11,9 @@
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  See the License for the specific language governing permissions and
  limitations under the License. */
+body, html {
+    height: 100%;
+}
 
  .selector-container {
     float: left;
@@ -38,6 +41,12 @@
 #openseadragon {
     border: 1px solid;
     height: 800px;
-    margin-left: 150px;
-    width: 90%;
+    width: 100%;
+}
+
+.breakall {
+    word-break: break-all;
+}
+.clickable {
+    cursor: pointer;
 }

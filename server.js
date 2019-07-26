@@ -97,7 +97,7 @@ function main () {
         let wsiViewerFile = path.join(process.cwd(), '/viewer/viewer.html')
         tools.readFileWeb(wsiViewerFile, response)
         break;
-      case (uri.match('^/viewer') || {}).input:
+      case (uri.match('viewer') || {}).input:
         let wsiViewerScriptFile = path.join(process.cwd(), `/viewer${uri}`)
         tools.readFileWeb(wsiViewerScriptFile, response)
         break

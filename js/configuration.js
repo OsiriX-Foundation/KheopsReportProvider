@@ -24,6 +24,20 @@ module.exports = {
       });
       return respJSON
     },
+    JSON_kheopsConfiguration: function(scheme, host, port = '80') {
+      var port = port === '80' || port === '443' ? '' : ':' + port
+      var respJSON = JSON.stringify({
+        'jwks_uri': `${scheme}://${host}${port}/certs`,
+        'response_type': 'token',
+        'redirect_uri': `${scheme}://${host}${port}/wsi-viewer`,
+        'client_name': 'Kheops Report Provider',
+        'client_uri': 'https://kheops.online',
+        'contacts': [
+          'contact@kheops.online'
+        ]
+      });
+      return respJSON
+    },
     JSON_cert: function(jwk) {
       var respJSON = JSON.stringify({
         keys:[{

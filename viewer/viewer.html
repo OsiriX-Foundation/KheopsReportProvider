@@ -35,19 +35,24 @@
     <!-- Sidebar  -->
     <nav id="sidebar">
       <div class="sidebar-header">
-        <h3>Bootstrap Sidebar</h3>
+        <h3 id="patientName"></h3>
       </div>
       <div id="testFor"></div>
     </nav>
 
     <!-- Page Content  -->
     <div id="content">
-      <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <nav class="navbar  navbar-light bg-light">
         <div class="container-fluid">
           <button type="button" id="sidebarCollapse" class="btn btn-info">
             <i class="fas fa-align-left"></i>
             <span>Series</span>
           </button>
+          <div>
+            <button type="button" id="back" class="btn btn-info" onclick="backToKheops()">
+              <i class="fa fa-backward" aria-hidden="true"></i>
+            </button>
+          </div>
         </div>
       </nav>
       <div id="openseadragon" class="map"></div>

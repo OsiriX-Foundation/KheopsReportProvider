@@ -64,6 +64,7 @@ function setConfigurationValue (conf_uri) {
     },
     success: function(value) {
       configurationValue = value
+      kheopsLoadStudy()
       kheopsUserInfo()
       kheopsLoadSeries()
     }
@@ -83,7 +84,30 @@ function kheopsUserInfo() {
           jqXHR.responseJSON[0].error.message);
     },
     success: function(user) {
-      $('#auth-status').text(`Current user : ${user.email}`);
+      $('#username').text(`${user.email}`);
+    }
+  });
+}
+
+function backToKheops() {
+  location.href = fragmentParameters.return_uri
+}
+
+function kheopsLoadStudy () {
+  const studyPath = `${STUDIES_PATH}`;
+  $.ajax({
+    headers: {
+      'Authorization': `${fragmentParameters.token_type} ${fragmentParameters.access_token}`
+    },
+    url: `${configurationValue.dicomweb_endpoint}${studyPath}`,
+    error: function(jqXHR) {
+      alert(
+          'Error - retrieving series failed: ' +
+          jqXHR.responseJSON[0].error.code + ' ' +
+          jqXHR.responseJSON[0].error.message);
+    },
+    success: function(studies) {
+      $('#patientName').text(studies[0]['00100010'].Value[0]['Alphabetic'])
     }
   });
 }

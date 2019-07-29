@@ -18,6 +18,10 @@
   <title>WSI DICOMWeb Viewer</title>
 
   <link rel="stylesheet" href="css/viewer.css">
+  <link rel="stylesheet" href="css/viewer_nav.css">
+
+  <script defer src="https://use.fontawesome.com/releases/v5.0.13/js/solid.js" integrity="sha384-tzzSw1/Vo+0N5UhStP3bvwWPq+uvzCMfrN1fEFe+xBmv1C/AtVX5K0uZtmcHitFZ" crossorigin="anonymous"></script>
+  <script defer src="https://use.fontawesome.com/releases/v5.0.13/js/fontawesome.js" integrity="sha384-6OIrr52G08NpOFSZdxxz1xdNSndlD4vdcf/q2myIUVO0VsqaGHJsB0RaBE01VTOY" crossorigin="anonymous"></script>
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/openseadragon@2.4/build/openseadragon/openseadragon.min.js"></script>
@@ -27,20 +31,33 @@
 </head>
 
 <body onload="onLoadInitKheops()">
-  <div class="container-fluid align-items-stretch">
-    <div class="row">
-      <div class="col-sm-12 col-md-2 col-lg-2 mb-2 mt-2">
-        <button class=" bg-faded d-sm-block d-md-none btn btn-primary" type="button" data-toggle="collapse" data-target="#testFor" aria-expanded="false" aria-controls="testFor">
-          Show series
-        </button>
-        <div class="container-fluid collapse show" id="testFor"></div>
+  <div class="wrapper">
+    <!-- Sidebar  -->
+    <nav id="sidebar">
+      <div class="sidebar-header">
+        <h3>Bootstrap Sidebar</h3>
+      </div>
+      <div id="testFor"></div>
+    </nav>
 
-      </div>
-      <div class="col-12 col-sm-12 col-md-10 col-lg-10">
-        <div id="openseadragon" class="map"></div>
-      </div>
+    <!-- Page Content  -->
+    <div id="content">
+      <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+          <button type="button" id="sidebarCollapse" class="btn btn-info">
+            <i class="fas fa-align-left"></i>
+            <span>Series</span>
+          </button>
+        </div>
+      </nav>
+      <div id="openseadragon" class="map"></div>
     </div>
   </div>
+  <script type="text/javascript">
+    $(document).ready(function () {
+      $('#sidebarCollapse').on('click', function () {
+        $('#sidebar').toggleClass('active');
+      });
+    });
+  </script>
 </body>
-<script>
-</script>

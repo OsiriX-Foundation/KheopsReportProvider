@@ -105,63 +105,44 @@ function kheopsLoadSeries () {
       $('#series-select').empty();
       const select = document.getElementById("series-select");
       for (let i = 0; i < studies.length; i++) {
-        /*
-        const option = document.createElement('option');
-        option.innerText = 'Serie ' + (i + 1);
-        option.value = studies[i][SERIES_INSTANCE_UID_TAG].Value[0];
-        select.appendChild(option);
-        loadInstancesInSeriesVignette(fragmentParameters.studyUID, studies[i][SERIES_INSTANCE_UID_TAG].Value[0])
-        */
         if (studies[i][SERIES_MODALITY].Value[0] === 'SM') {
-          let newRow = `<div class='row border clickable' onclick='loadInstancesInSeries("${studies[i][SERIES_INSTANCE_UID_TAG].Value[0]}")'>`
           let newCol = ''
-          if (studies[i][SERIES_DESCRIPTION] !== undefined) {
-            newCol += `
-              <div class='col-12'>
-                <b class='breakall'>${studies[i][SERIES_DESCRIPTION].Value[0]}</b>
-              </div>
-            `
-          }
-          if (studies[i][SERIES_DATE] !== undefined) {
-            newCol += `
-              <div class='col-12'>
-                <b class='breakall'>${studies[i][SERIES_DATE].Value[0]}</b>
-              </div>
-            `
-          }
-          if (studies[i][SERIES_MODALITY] !== undefined) {
-            newCol += `
-              <div class='col-12'>
-                <b class='breakall'>${studies[i][SERIES_MODALITY].Value[0]}</b>
-              </div>
-            `
-          }
-          if (studies[i][SERIES_RELATED_INSTANCES] !== undefined) {
-            newCol += `
-              <div class='col-12'>
-                <b class='breakall'>${studies[i][SERIES_RELATED_INSTANCES].Value[0]}</b>
-              </div>
-            `
-          }
-          if (newCol === '') {
-            newCol += `
-              <div class='col-12'>
-                <b class='breakall'>${studies[i][SERIES_INSTANCES_NUMBER].Value[0]}</b>
-              </div>
-            `
-          }
-          newRow += `${newCol}</div>`
-          $('#testFor').append(newRow)
+          newCol += (studies[i][SERIES_DESCRIPTION] !== undefined ? createColNav('Description', studies[i][SERIES_DESCRIPTION].Value[0]) : '')
+          newCol += (studies[i][SERIES_DATE] !== undefined ? createColNav('Date', studies[i][SERIES_DATE].Value[0]) : '')
+          newCol += (studies[i][SERIES_MODALITY] !== undefined ? createColNav('Modality', studies[i][SERIES_MODALITY].Value[0]) : '')
+          newCol += (studies[i][SERIES_RELATED_INSTANCES] !== undefined ? createColNav('#Instances',studies[i][SERIES_RELATED_INSTANCES].Value[0]) : '')
+          newCol += (studies[i][SERIES_INSTANCES_NUMBER] !== undefined ? createColNav('Instance number', studies[i][SERIES_INSTANCES_NUMBER].Value[0]) : '')
+
+          $('#testFor').append(createNavBar(studies[i][SERIES_INSTANCE_UID_TAG].Value[0], newCol))
         }
       }
-      // loadInstancesInSeries($('#series-select option:selected').val())
       loadInstancesInSeries(studies[0][SERIES_INSTANCE_UID_TAG].Value[0])
     }
   });
 }
 
-function test(serieUID) {
-  console.log(serieUID)
+function createNavBar (instanceUID, items) {
+  return `
+    <ul class="list-unstyled components clickable" onclick='loadInstancesInSeries("${instanceUID}")'>
+      <div class="container-fluid">
+        <div class='row  clickable'>
+          <li class="nav-item">
+            ${items}
+          </li>
+        </div>
+      </div>
+    </ul>
+  `
+}
+function createColNav(title, value) {
+  return `
+    <div class='col-12'>
+      <div class="d-flex bd-highlight mb-1">
+        <div class="p-1">${title}</div>
+        <div class="ml-auto p-1 breakall"><b>${value}</b></div>
+      </div>
+    </div>
+  `
 }
 
 function loadInstancesInSeriesVignette (studyUID, serieUID) {

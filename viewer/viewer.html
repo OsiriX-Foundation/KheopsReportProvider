@@ -24,10 +24,12 @@
   <script defer src="https://use.fontawesome.com/releases/v5.0.13/js/fontawesome.js" integrity="sha384-6OIrr52G08NpOFSZdxxz1xdNSndlD4vdcf/q2myIUVO0VsqaGHJsB0RaBE01VTOY" crossorigin="anonymous"></script>
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/openseadragon@2.4/build/openseadragon/openseadragon.min.js"></script>
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/openseadragon@2.4/build/openseadragon/openseadragon.min.js"></script>
+  <script src="js/viewer-openseadragon-scalebar.js"></script>
   <script src="js/viewer.js"></script>
+  <meta charset="UTF-8">
 </head>
 
 <body onload="onLoadInitKheops()">
@@ -35,7 +37,7 @@
     <!-- Sidebar  -->
     <nav id="sidebar">
       <div class="sidebar-header">
-        <h3 id="patientName"></h3>
+        <h3 id="patientName" class="breakall"></h3>
       </div>
       <div id="testFor"></div>
     </nav>
@@ -50,7 +52,7 @@
           </button>
           <div>
             <button type="button" id="back" class="btn btn-info" onclick="backToKheops()">
-              <i class="fa fa-backward" aria-hidden="true"></i>
+                Back to Kheops <i class="fa fa-backward" aria-hidden="true"></i>
             </button>
           </div>
         </div>

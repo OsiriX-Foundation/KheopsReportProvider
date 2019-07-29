@@ -106,41 +106,39 @@ function kheopsLoadStudy () {
           jqXHR.responseJSON[0].error.code + ' ' +
           jqXHR.responseJSON[0].error.message);
     },
-    success: function(studies) {
-      $('#patientName').text(studies[0]['00100010'].Value[0]['Alphabetic'])
+    success: function(study) {
+      $('#patientName').text(study[0]['00100010'].Value[0]['Alphabetic'])
     }
   });
 }
 
 function kheopsLoadSeries () {
-  const studyPath = `${STUDIES_PATH}/${fragmentParameters.studyUID}${SERIES_PATH}?includefield=all`;
+  const seriesPath = `${STUDIES_PATH}/${fragmentParameters.studyUID}${SERIES_PATH}?includefield=all`;
   $.ajax({
     headers: {
       'Authorization': `${fragmentParameters.token_type} ${fragmentParameters.access_token}`
     },
-    url: `${configurationValue.dicomweb_endpoint}${studyPath}`,
+    url: `${configurationValue.dicomweb_endpoint}${seriesPath}`,
     error: function(jqXHR) {
       alert(
           'Error - retrieving series failed: ' +
           jqXHR.responseJSON[0].error.code + ' ' +
           jqXHR.responseJSON[0].error.message);
     },
-    success: function(studies) {
-      $('#series-select').empty();
-      const select = document.getElementById("series-select");
-      for (let i = 0; i < studies.length; i++) {
-        if (studies[i][SERIES_MODALITY].Value[0] === 'SM') {
+    success: function(series) {
+      for (let i = 0; i < series.length; i++) {
+        if (series[i][SERIES_MODALITY].Value[0] === 'SM') {
           let newCol = ''
-          newCol += (studies[i][SERIES_DESCRIPTION] !== undefined ? createColNav('Description', studies[i][SERIES_DESCRIPTION].Value[0]) : '')
-          newCol += (studies[i][SERIES_DATE] !== undefined ? createColNav('Date', studies[i][SERIES_DATE].Value[0]) : '')
-          newCol += (studies[i][SERIES_MODALITY] !== undefined ? createColNav('Modality', studies[i][SERIES_MODALITY].Value[0]) : '')
-          newCol += (studies[i][SERIES_RELATED_INSTANCES] !== undefined ? createColNav('#Instances',studies[i][SERIES_RELATED_INSTANCES].Value[0]) : '')
-          newCol += (studies[i][SERIES_INSTANCES_NUMBER] !== undefined ? createColNav('Instance number', studies[i][SERIES_INSTANCES_NUMBER].Value[0]) : '')
+          newCol += (series[i][SERIES_DESCRIPTION] !== undefined ? createColNav('Description', series[i][SERIES_DESCRIPTION].Value[0]) : '')
+          newCol += (series[i][SERIES_DATE] !== undefined ? createColNav('Date', series[i][SERIES_DATE].Value[0]) : '')
+          newCol += (series[i][SERIES_MODALITY] !== undefined ? createColNav('Modality', series[i][SERIES_MODALITY].Value[0]) : '')
+          newCol += (series[i][SERIES_RELATED_INSTANCES] !== undefined ? createColNav('#Instances',series[i][SERIES_RELATED_INSTANCES].Value[0]) : '')
+          newCol += (series[i][SERIES_INSTANCES_NUMBER] !== undefined ? createColNav('Instance number', series[i][SERIES_INSTANCES_NUMBER].Value[0]) : '')
 
-          $('#testFor').append(createNavBar(studies[i][SERIES_INSTANCE_UID_TAG].Value[0], newCol))
+          $('#testFor').append(createNavBar(series[i][SERIES_INSTANCE_UID_TAG].Value[0], newCol))
         }
       }
-      loadInstancesInSeries(studies[0][SERIES_INSTANCE_UID_TAG].Value[0])
+      loadInstancesInSeries(series[0][SERIES_INSTANCE_UID_TAG].Value[0])
     }
   });
 }
@@ -251,6 +249,12 @@ function manageInstances(instances, studyUID, serieUID) {
     let tileWidthPx = 0;
     let tileHeightPx = 0;
     let levelWidths = new Set();
+    let pixelPerMM = [0, 0]
+    try {
+      pixelPerMM = instances[0]['52009229'].Value[0]['00289110'].Value[0]['00280030'].Value
+    } catch {
+      console.log('tag 00280030 not defined')
+    }
     for (let i = 0; i < instances.length; i++) {
       const w =
           Number(instances[i][TOTAL_PIXEL_MATRIX_COLUMNS_TAG].Value);
@@ -309,11 +313,21 @@ function manageInstances(instances, studyUID, serieUID) {
         navigatorHeight:   "120px",
         navigatorWidth:    "145px",
       });
+      viewer.scalebar({
+        pixelsPerMeter: 1000/pixelPerMM[0],
+        minWidth: "75px",
+        xOffset: 5,
+        yOffset: 10,
+        stayInsideImage: true,
+        backgroundColor: "rgba(255, 255, 255, 0.5)",
+        barThickness: 2
+      });
     } else {
       viewer.close();
       viewer.open(tileSource);
     }
   } catch (err) {
+    console.log(err)
     alert(
         `Could not parse DICOM for study, possible reason: DICOM is not
         pathology or damaged image.`);

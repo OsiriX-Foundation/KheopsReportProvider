@@ -34,6 +34,9 @@ module.exports = {
         'client_uri': 'https://kheops.online',
         'contacts': [
           'contact@kheops.online'
+        ],
+        'supported_modalities': [
+          'SM'
         ]
       });
       return respJSON

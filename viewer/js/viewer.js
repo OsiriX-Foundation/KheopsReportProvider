@@ -16,7 +16,7 @@
 
 const STUDIES_PATH = '/studies';
 const SERIES_PATH = '/series';
-
+let DICOMWEB_ENDPOINT = '';
 // The following are all attributes and tags from the DICOM standard
 // A constant's name describes the attribute. The value is the stringified,
 // non-comma-separated tag associated with it.
@@ -48,7 +48,13 @@ let configurationValue = {};
 
 function onLoadInitKheops () {
   initFragmentParameters()
-  setConfigurationValue(fragmentParameters.conf_uri)
+  if (fragmentParameters.target_uri !== undefined) {
+    DICOMWEB_ENDPOINT = fragmentParameters.target_uri
+    kheopsLoadStudy()
+    kheopsLoadSeries()
+  } else {
+    setConfigurationValue(fragmentParameters.conf_uri)
+  }
 }
 
 function initFragmentParameters () {
@@ -64,6 +70,8 @@ function setConfigurationValue (conf_uri) {
     },
     success: function(value) {
       configurationValue = value
+      DICOMWEB_ENDPOINT = configurationValue.dicomweb_endpoint
+      $('#backKheops').append(createBackBtn())
       kheopsLoadStudy()
       kheopsUserInfo()
       kheopsLoadSeries()
@@ -99,7 +107,7 @@ function kheopsLoadStudy () {
     headers: {
       'Authorization': `${fragmentParameters.token_type} ${fragmentParameters.access_token}`
     },
-    url: `${configurationValue.dicomweb_endpoint}${studyPath}`,
+    url: `${DICOMWEB_ENDPOINT}${studyPath}`,
     error: function(jqXHR) {
       alert(
           'Error - retrieving series failed: ' +
@@ -118,7 +126,7 @@ function kheopsLoadSeries () {
     headers: {
       'Authorization': `${fragmentParameters.token_type} ${fragmentParameters.access_token}`
     },
-    url: `${configurationValue.dicomweb_endpoint}${seriesPath}`,
+    url: `${DICOMWEB_ENDPOINT}${seriesPath}`,
     error: function(jqXHR) {
       alert(
           'Error - retrieving series failed: ' +
@@ -135,7 +143,7 @@ function kheopsLoadSeries () {
           newCol += (series[i][SERIES_RELATED_INSTANCES] !== undefined ? createColNav('#Instances',series[i][SERIES_RELATED_INSTANCES].Value[0]) : '')
           newCol += (series[i][SERIES_INSTANCES_NUMBER] !== undefined ? createColNav('Instance number', series[i][SERIES_INSTANCES_NUMBER].Value[0]) : '')
 
-          $('#testFor').append(createNavBar(series[i][SERIES_INSTANCE_UID_TAG].Value[0], newCol))
+          $('#forStudies').append(createNavBar(series[i][SERIES_INSTANCE_UID_TAG].Value[0], newCol))
         }
       }
       loadInstancesInSeries(series[0][SERIES_INSTANCE_UID_TAG].Value[0])
@@ -167,6 +175,14 @@ function createColNav(title, value) {
   `
 }
 
+function createBackBtn() {
+  return `
+    <button type="button" id="back" class="btn btn-info" onclick="backToKheops()">
+      Back to Kheops <i class="fa fa-backward" aria-hidden="true"></i>
+    </button>
+  `
+}
+
 function loadInstancesInSeriesVignette (studyUID, serieUID) {
   if(serieUID.length == 0) return;
   const instancesPath = `${STUDIES_PATH}/${studyUID}${SERIES_PATH}/${serieUID}/instances`
@@ -174,7 +190,7 @@ function loadInstancesInSeriesVignette (studyUID, serieUID) {
     headers: {
       'Authorization': `${fragmentParameters.token_type} ${fragmentParameters.access_token}`
     },
-    url: `${configurationValue.dicomweb_endpoint}${instancesPath}`,
+    url: `${DICOMWEB_ENDPOINT}${instancesPath}`,
     error: function(jqXHR) {
       alert(
           'Error - retrieving instances failed: ' +
@@ -183,7 +199,7 @@ function loadInstancesInSeriesVignette (studyUID, serieUID) {
     },
     success: function(instances) {
       let instanceUID = instances[instances.length-1][SOP_INSTANCE_UID_TAG].Value[0]
-      let url = `${configurationValue.dicomweb_endpoint}/wado?studyUID=${studyUID}&seriesUID=${serieUID}&objectUID=${instanceUID}&requestType=WADO&frameNumber=1`
+      let url = `${DICOMWEB_ENDPOINT}/wado?studyUID=${studyUID}&seriesUID=${serieUID}&objectUID=${instanceUID}&requestType=WADO&frameNumber=1`
       $.ajax({
         headers: {
           'Accept': 'image/jpeg',
@@ -211,7 +227,7 @@ function loadInstancesInSeries (serieUID) {
     headers: {
       'Authorization': `${fragmentParameters.token_type} ${fragmentParameters.access_token}`
     },
-    url: `${configurationValue.dicomweb_endpoint}${instancesPath}`,
+    url: `${DICOMWEB_ENDPOINT}${instancesPath}`,
     error: function(jqXHR) {
       alert(
           'Error - retrieving instances failed: ' +
@@ -228,7 +244,7 @@ function loadInstancesInSeries (serieUID) {
           headers: {
             'Authorization': `${fragmentParameters.token_type} ${fragmentParameters.access_token}`
           },
-          url: `${configurationValue.dicomweb_endpoint}${instancesPath}/${instances[i][SOP_INSTANCE_UID_TAG].Value[0]}/metadata`,
+          url: `${DICOMWEB_ENDPOINT}${instancesPath}/${instances[i][SOP_INSTANCE_UID_TAG].Value[0]}/metadata`,
           success: function (res) {
             results.push(res[0])
           }
@@ -291,7 +307,7 @@ function manageInstances(instances, studyUID, serieUID) {
         const z = countLevels - 1 - level;
         const key = x + '/' + y + '/' + z;
         const params = pyramidMeta[key];
-        const renderedPath = `${configurationValue.dicomweb_endpoint}/wado?studyUID=${studyUID}&seriesUID=${serieUID}&objectUID=${params.SOPInstanceUID[0]}&requestType=WADO&frameNumber=${params.FrameNumber}`
+        const renderedPath = `${DICOMWEB_ENDPOINT}/wado?studyUID=${studyUID}&seriesUID=${serieUID}&objectUID=${params.SOPInstanceUID[0]}&requestType=WADO&frameNumber=${params.FrameNumber}`
         return renderedPath;
       },
       getLevelScale: function(level) {

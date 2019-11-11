@@ -57,6 +57,7 @@ module.exports = {
     },
     readFileWeb: function (filename, response, setCookie='') {
       var contentTypesByExtension = {
+        '.ico': "image/x-icon",
         '.html': "text/html",
         '.css':  "text/css",
         '.js':   "text/javascript"

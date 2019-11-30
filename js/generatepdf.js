@@ -78,8 +78,7 @@ module.exports = {
           .text(`${userInfo.data.name} created this document on ${datetime.toDateString()}.
           `)
         doc.fontSize(14)
-          .text(`Study : ${study.data[0]['00081030'] !== undefined ? study.data[0]['00081030']['Value'][0] : study.data[0]['0020000D']['Value'][0]}
-          `)
+          .text(`Study : ${study.data[0]['00081030'] !== undefined ? study.data[0]['00081030']['Value'][0] : study.data[0]['0020000D']['Value'][0]}`)
         doc.text(`Patient name : ${study.data[0]['00100010']['Value'][0]['Alphabetic']}`)
         doc.text(`First modality in this study : ${study.data[0]['00080061']['Value'][0]}
           `)

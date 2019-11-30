@@ -136,7 +136,7 @@ function main () {
             reject("Not authorized")
           }
           getConfFromCookie(cookie).then(res => {
-            let urlStudies = `${res.data.dicomweb_endpoint}/studies`
+            let urlStudies = `${res.data.dicomweb_endpoint}/studies?includefield=00081030`
             customrequests.getBearer(urlStudies, cookie.decryptAccessToken).then(res => {
               resolve(res)
             }).catch(err => {

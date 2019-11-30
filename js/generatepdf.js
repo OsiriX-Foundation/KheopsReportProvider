@@ -78,12 +78,13 @@ module.exports = {
           .text(`${userInfo.data.name} created this document on ${datetime.toDateString()}.
           `)
         doc.fontSize(14)
-          .text(`${userInfo.data.name} can access to the study ${study.data[0]['00081030'] !== undefined ? study.data[0]['00081030']['Value'][0] : study.data[0]['0020000D']['Value'][0]} with the patient name ${study.data[0]['00100010']['Value'][0]['Alphabetic']}
+          .text(`Study : ${study.data[0]['00081030'] !== undefined ? study.data[0]['00081030']['Value'][0] : study.data[0]['0020000D']['Value'][0]}
           `)
-        doc.text(`Modalities in this studies : ${study.data[0]['00080061']['Value'][0]}
+        doc.text(`Patient name : ${study.data[0]['00100010']['Value'][0]['Alphabetic']}`)
+        doc.text(`First modality in this study : ${study.data[0]['00080061']['Value'][0]}
           `)
         doc.text(' ')
-        doc.text('This is the list of the series in the study')
+        doc.text('Series in the study')
         doc.text(' ')
         let promiseTab = []
         config.responseType='arraybuffer'
@@ -96,7 +97,7 @@ module.exports = {
             getInformations(urlWado, config).then(res => {
               let result = {
                 id: serie['0020000E']['Value'][0],
-                text: `${id}. Serie ${serie['0008103E'] !== undefined ? serie['0008103E']['Value'][0] : serie['0020000E']['Value'][0]} ${serie['00080060'] !== undefined ? 'with modality ' + serie['00080060']['Value'][0] : ''}`,
+                text: `${id}. Series ${serie['0008103E'] !== undefined ? serie['0008103E']['Value'][0] : serie['0020000E']['Value'][0]} ${serie['00080060'] !== undefined ? 'with modality ' + serie['00080060']['Value'][0] : ''}`,
                 img: res.data
               }
               resolve(result)
@@ -104,7 +105,7 @@ module.exports = {
               if (err.response.status === 406) {
                 let result = {
                   id: serie['0020000E']['Value'][0],
-                  text: `${id}. Serie ${serie['0008103E'] !== undefined ? serie['0008103E']['Value'][0] : serie['0020000E']['Value'][0]} ${serie['00080060'] !== undefined ? 'with modality ' + serie['00080060']['Value'][0] : ''}`,
+                  text: `${id}. Series ${serie['0008103E'] !== undefined ? serie['0008103E']['Value'][0] : serie['0020000E']['Value'][0]} ${serie['00080060'] !== undefined ? 'with modality ' + serie['00080060']['Value'][0] : ''}`,
                   img: 'no'
                 }
                 resolve(result)

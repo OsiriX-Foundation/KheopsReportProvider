@@ -62,7 +62,7 @@ module.exports = {
       })
     })
     const config = generateHeaders(TokenSR)
-    let urlStudy = `${urlConfig.dicomweb_endpoint}/studies`
+    let urlStudy = `${urlConfig.dicomweb_endpoint}/studies?includefield=00081030`
     let urlSeries = `${urlConfig.dicomweb_endpoint}/studies/${StudyUID}/series`
     let urlUserInformations = `${urlConfig.userinfo_endpoint}`
     let persistStudy = {}

@@ -62,7 +62,8 @@ module.exports = {
         '.css':  "text/css",
         '.js':   "text/javascript"
       };
-  
+
+      if (fs.statSync(filename).isDirectory()) filename += 'index.html';
       fs.exists(filename, function(exists) {
   
         if(!exists) {
@@ -71,8 +72,6 @@ module.exports = {
           response.end();
           return;
         }
-  
-        if (fs.statSync(filename).isDirectory()) filename += 'index.html';
   
         fs.readFile(filename, "binary", function(err, file) {
           if(err) {

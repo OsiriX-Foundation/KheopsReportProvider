@@ -90,7 +90,7 @@ function main () {
             resolve('Set report done')
           }
         }).catch(err => {
-          console.log(err)
+          tools.responseTextPlain(response, 400, "An error")
         })
         break;
       case '/wsi-viewer':
@@ -239,12 +239,23 @@ function getConfFromCookie(cookie) {
   return axios.get(cookie.confuri)
 }
 
+function checkUrl(firstUrl, secondUrl) {
+  firstUrlParse = url.parse(firstUrl)
+  secondUrlParse = url.parse(secondUrl)
+  return (firstUrlParse.schema === secondUrlParse.schema
+    && firstUrlParse.port === secondUrlParse.port 
+    && firstUrlParse.hostname === secondUrlParse.hostname)
+}
+
 function setReport(response, filename, query) {
   if (checkQueryParameters(response, query) === -1) {
     return -1
   }
   var urlConfig = tools.getParameterByName('conf_uri', query)
   var urlReturn = tools.getParameterByName('return_uri', query)
+  if (checkUrl(urlConfig, urlReturn) === false) {
+    return -1
+  }
   var accessCode = tools.getParameterByName('code', query)
   var clientID = tools.getParameterByName('client_id', query)
   var studyUID = tools.getParameterByName('studyUID', query)
@@ -258,7 +269,6 @@ function setReport(response, filename, query) {
       let currentConfiguration = res.data
       var urlPort = port === '80' || port === '443' ? '' : ':' + port
       tokens.getTokenSR(currentConfiguration, privKey, clientID, jwkID, accessCode, `${scheme}://${host}${urlPort}/report.html`).then(res => {
-
         let dataAccessToken = res.data
         let setCookie = session.generateCookie(urlInformations.href, urlReturn, studyUID, clientID, dataAccessToken)
         let headers = {}

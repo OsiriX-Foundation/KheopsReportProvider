@@ -63,9 +63,8 @@ module.exports = {
         '.js':   "text/javascript"
       };
 
-      if (fs.statSync(filename).isDirectory()) filename += 'index.html';
+      if (fs.existsSync(filename) && fs.statSync(filename).isDirectory()) filename += 'index.html';
       fs.exists(filename, function(exists) {
-  
         if(!exists) {
           response.writeHead(404, {"Content-Type": "text/plain"});
           response.write("404 Not Found\n");

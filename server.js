@@ -125,7 +125,7 @@ function main () {
         }).then(res => {
           tools.responseJSON(response, 200, JSON.stringify(res.data))
         }).catch(err => {
-          if (err !== undefined && err.message !== undefined && err.message === 'NotAuthoUnauthorizedrized') {
+          if (err !== undefined && err.message !== undefined && err.message === 'Unauthorized') {
             tools.responseTextPlain(response, 401, "Unauthorized")
           } else {
             generateError(response, err)
@@ -293,6 +293,7 @@ function setReport(response, filename, query) {
         }
 
       }).catch(err => {
+        console.log(err)
         generateError(response, err)
       })
 
@@ -307,6 +308,7 @@ function setReport(response, filename, query) {
 }
 
 function generateError(response, err) {
+  console.log(err)
   if (err.response !== undefined && err.response.status !== undefined && err.response.data !== undefined) {
     var responseJSON = JSON.stringify(err.response.data);
     tools.responseJSON(response, err.response.status, responseJSON)

@@ -202,13 +202,13 @@ function main () {
             reject("Unauthorized")
           }
           tools.responseJSON(response, 200, JSON.stringify({ 'redirect_uri': cookie.returnuri }))
-        }.catch((err) => {
+        }).catch((err) => {
           if (err !== undefined && err.message !== undefined && err.message === 'Unauthorized') {
             tools.responseTextPlain(response, 401, "Unauthorized")
           } else {
             generateError(response, err)
           }
-        }))
+        })
         break;
       case '/post_pdf':
         new Promise(function (resolve, reject) {

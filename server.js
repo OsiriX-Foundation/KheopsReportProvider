@@ -107,7 +107,7 @@ function main () {
         break;
       case '/series':
         new Promise(function (resolve, reject) {
-          let cookie = session.readCookie(request.headers.cookie, request.headers['x-xsrf-token'])
+          let cookie = tryReadCookie(request.headers.cookie, request.headers['x-xsrf-token'])
           if (cookie === -1) {
             reject(new Error('Unauthorized'))
           }
@@ -125,18 +125,14 @@ function main () {
         }).then(res => {
           tools.responseJSON(response, 200, JSON.stringify(res.data))
         }).catch(err => {
-          if (err !== undefined && err.message !== undefined && err.message === 'Unauthorized') {
-            tools.responseTextPlain(response, 401, "Unauthorized")
-          } else {
-            generateError(response, err)
-          }
+          generateError(response, err)
         })
         break;
       case '/studies':
         new Promise(function (resolve, reject) {
-          let cookie = session.readCookie(request.headers.cookie, request.headers['x-xsrf-token'])
+          let cookie = tryReadCookie(request.headers.cookie, request.headers['x-xsrf-token'])
           if (cookie === -1) {
-            reject("Not authorized")
+            reject(new Error('Unauthorized'))
           }
           getConfFromCookie(cookie).then(res => {
             let urlStudies = `${res.data.dicomweb_endpoint}/studies?includefield=00081030`
@@ -151,14 +147,14 @@ function main () {
         }).then(res => {
           tools.responseJSON(response, 200, JSON.stringify(res.data))
         }).catch(err => {
-          tools.responseTextPlain(response, 500, err)
+          generateError(response, err)
         })
         break;
       case '/configuration_kheops':
         new Promise(function (resolve, reject) {
-          let cookie = session.readCookie(request.headers.cookie, request.headers['x-xsrf-token'])
+          let cookie = tryReadCookie(request.headers.cookie, request.headers['x-xsrf-token'])
           if (cookie === -1) {
-            reject("Not authorized")
+            reject(new Error('Unauthorized'))
           }
           axios.get(cookie.confuri).then(res => {
             resolve(res)
@@ -168,15 +164,14 @@ function main () {
         }).then(res => {
           tools.responseJSON(response, 200, JSON.stringify(res.data))
         }).catch(err => {
-          tools.responseTextPlain(response, 500, err)
-          console.log(err)
+          generateError(response, err)
         })
         break;
       case '/user_info':
         new Promise(function (resolve, reject) {
-          let cookie = session.readCookie(request.headers.cookie, request.headers['x-xsrf-token'])
+          let cookie = tryReadCookie(request.headers.cookie, request.headers['x-xsrf-token'])
           if (cookie === -1) {
-            reject("Not authorized")
+            reject(new Error('Unauthorized'))
           }
           getConfFromCookie(cookie).then(res => {
             customrequests.getBearer(res.data.userinfo_endpoint, cookie.decryptAccessToken).then(res => {
@@ -191,31 +186,29 @@ function main () {
         }).then(res => {
           tools.responseJSON(response, 200, JSON.stringify(res.data))
         }).catch(err => {
-          tools.responseTextPlain(response, 500, err)
-          console.log(err)
+          generateError(response, err)
         })
         break;
       case '/redirect':
         new Promise(function (resolve, reject) {
-          let cookie = session.readCookie(request.headers.cookie, request.headers['x-xsrf-token'])
+          let cookie = tryReadCookie(request.headers.cookie, request.headers['x-xsrf-token'])
           if (cookie === -1) {
-            reject("Unauthorized")
+            reject(new Error('Unauthorized'))
           }
+          resolve(cookie)
+        }).then((res) => {
+          let cookie = res
           tools.responseJSON(response, 200, JSON.stringify({ 'redirect_uri': cookie.returnuri }))
         }).catch((err) => {
-          if (err !== undefined && err.message !== undefined && err.message === 'Unauthorized') {
-            tools.responseTextPlain(response, 401, "Unauthorized")
-          } else {
-            generateError(response, err)
-          }
+          generateError(response, err)
         })
         break;
       case '/post_pdf':
         new Promise(function (resolve, reject) {
           let studyUID_postPDF = tools.getParameterByName('studyUID', query)
-          let cookie = session.readCookie(request.headers.cookie, request.headers['x-xsrf-token'])
+          let cookie = tryReadCookie(request.headers.cookie, request.headers['x-xsrf-token'])
           if (cookie === -1) {
-            reject("Unauthorized")
+            reject(new Error('Unauthorized'))
           }
           getConfFromCookie(cookie).then(res => {
             let currentConfiguration = res.data
@@ -230,11 +223,7 @@ function main () {
           })
 
         }).catch(err => {
-          if (err === 'Unauthorized') {
-            tools.responseTextPlain(response, 401, "Unauthorized")
-          } else {
-            tools.responseTextPlain(response, 500, err)
-          }
+          generateError(response, err)
         })
         break;
       default:
@@ -243,6 +232,15 @@ function main () {
   }).listen(parseInt(80, 10));
 
   console.log(myaddr + "/\nCTRL + C to shutdown");
+}
+
+function tryReadCookie(cookie, token) {
+  try {
+    return session.readCookie(cookie, token)
+  }
+  catch (err) {
+    return -1
+  }
 }
 
 function getConfFromCookie(cookie) {
@@ -308,8 +306,9 @@ function setReport(response, filename, query) {
 }
 
 function generateError(response, err) {
-  console.log(err)
-  if (err.response !== undefined && err.response.status !== undefined && err.response.data !== undefined) {
+  if (err !== undefined && err.message !== undefined && err.message === 'Unauthorized') {
+    tools.responseTextPlain(response, 401, "Unauthorized")
+  } else if (err.response !== undefined && err.response.status !== undefined && err.response.data !== undefined) {
     var responseJSON = JSON.stringify(err.response.data);
     tools.responseJSON(response, err.response.status, responseJSON)
   } else {

@@ -109,7 +109,7 @@ function main () {
         new Promise(function (resolve, reject) {
           let cookie = session.readCookie(request.headers.cookie, request.headers['x-xsrf-token'])
           if (cookie === -1) {
-            reject("Not authorized")
+            reject(new Error('Unauthorized'))
           }
           getConfFromCookie(cookie).then(res => {
             let studyUID = tools.getParameterByName('studyUID', query)
@@ -125,8 +125,11 @@ function main () {
         }).then(res => {
           tools.responseJSON(response, 200, JSON.stringify(res.data))
         }).catch(err => {
-          console.log(err)
-          tools.responseTextPlain(response, 500, "An error")
+          if (err !== undefined && err.message !== undefined && err.message === 'NotAuthoUnauthorizedrized') {
+            tools.responseTextPlain(response, 401, "Unauthorized")
+          } else {
+            generateError(response, err)
+          }
         })
         break;
       case '/studies':
@@ -193,19 +196,26 @@ function main () {
         })
         break;
       case '/redirect':
-        let cookie = session.readCookie(request.headers.cookie, request.headers['x-xsrf-token'])
-        if (cookie === -1) {
-          reject("Not authorized")
-        }
-        tools.responseJSON(response, 200, JSON.stringify({ 'redirect_uri': cookie.returnuri }))
-
+        new Promise(function (resolve, reject) {
+          let cookie = session.readCookie(request.headers.cookie, request.headers['x-xsrf-token'])
+          if (cookie === -1) {
+            reject("Unauthorized")
+          }
+          tools.responseJSON(response, 200, JSON.stringify({ 'redirect_uri': cookie.returnuri }))
+        }.catch((err) => {
+          if (err !== undefined && err.message !== undefined && err.message === 'Unauthorized') {
+            tools.responseTextPlain(response, 401, "Unauthorized")
+          } else {
+            generateError(response, err)
+          }
+        }))
         break;
       case '/post_pdf':
         new Promise(function (resolve, reject) {
           let studyUID_postPDF = tools.getParameterByName('studyUID', query)
           let cookie = session.readCookie(request.headers.cookie, request.headers['x-xsrf-token'])
           if (cookie === -1) {
-            reject("Not authorized")
+            reject("Unauthorized")
           }
           getConfFromCookie(cookie).then(res => {
             let currentConfiguration = res.data
@@ -220,8 +230,8 @@ function main () {
           })
 
         }).catch(err => {
-          if (err === 'Not authorized') {
-            tools.responseTextPlain(response, 401, err)
+          if (err === 'Unauthorized') {
+            tools.responseTextPlain(response, 401, "Unauthorized")
           } else {
             tools.responseTextPlain(response, 500, err)
           }
@@ -279,18 +289,11 @@ function setReport(response, filename, query) {
           response.writeHead(302, headers);
           response.end();
         } else {
-          tools.responseTextPlain(response, 500, 'Cant create an access')
+          tools.responseTextPlain(response, 400, 'Cant create an access')
         }
 
       }).catch(err => {
-        if (err.response !== undefined) {
-          console.log(err.response.data)
-          var responseJSON = JSON.stringify(err.response.data);
-          tools.responseJSON(response, err.response.status, responseJSON)
-        } else {
-          console.log(err)
-        }
-        return -1
+        generateError(response, err)
       })
 
     })
@@ -298,9 +301,19 @@ function setReport(response, filename, query) {
     const error = {}
     error['error'] = 'url config not valid'
     var responseJSON = JSON.stringify({error});
-    tools.responseJSON(response, 500, responseJSON)
+    tools.responseJSON(response, 400, responseJSON)
     return -1
   }
+}
+
+function generateError(response, err) {
+  if (err.response !== undefined && err.response.status !== undefined && err.response.data !== undefined) {
+    var responseJSON = JSON.stringify(err.response.data);
+    tools.responseJSON(response, err.response.status, responseJSON)
+  } else {
+    tools.responseTextPlain(response, 500, "An error")
+  }
+  return -1
 }
 
 function checkQueryParameters(response, query) {
@@ -315,7 +328,7 @@ function checkQueryParameters(response, query) {
       !query.includes('client_id') ? 'client_id' : ''
     ]
     var responseJSON = JSON.stringify({error});
-    tools.responseJSON(response, 500, responseJSON)
+    tools.responseJSON(response, 400, responseJSON)
     return -1
   }
 }
@@ -328,7 +341,7 @@ function parseUrlConfig(response, urlConfig) {
     const error = {}
     error['error'] = 'Impossible to parse the url config'
     var responseJSON = JSON.stringify({error});
-    tools.responseJSON(response, 500, responseJSON)
+    tools.responseJSON(response, 400, responseJSON)
     return -1
   }
 }

@@ -93,7 +93,7 @@ function main () {
           tools.responseTextPlain(response, 400, "An error")
         })
         break;
-      case '/':
+      case '/wsi-viewer':
         let wsiViewerFile = path.join(process.cwd(), '/viewer/viewer.html')
         tools.readFileWeb(wsiViewerFile, response)
         break;

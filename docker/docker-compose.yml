@@ -12,8 +12,6 @@ services:
       - "lavim.kheops.online:10.5.7.3"
       - "lavim.unige.ch:10.5.7.3"
       - "aneux.kheops.online:10.5.7.9"
-    secrets:
-      - privkey.pem
     networks:
       - reportprovider-network
 

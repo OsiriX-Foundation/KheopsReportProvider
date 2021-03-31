@@ -9,7 +9,7 @@
     <div id="config"></div>
     <p></p>
 
-    <button onclick="httpGet(`${window.location.origin}/configuration_kheops`, 'info')">Configuration Kheops</button>
+    <button onclick="httpGet(`${window.location.origin}/configuration_kheops`, 'info')">Kheops configuration</button>
     <button onclick="getStudy()">Study</button>
     <button onclick="getSeries()">Series</button>
     <button onclick="clearTag('info')">Clear</button>
@@ -57,7 +57,8 @@
   function postPdfStudy() {
     let params = (new URL(document.location)).searchParams;
     let studyUID = getCookie('studyUID');
-    httpPost(`${window.location.origin}/post_pdf?studyUID=${studyUID}`, 'post_studies')
+    let response = httpPost(`${window.location.origin}/post_pdf?studyUID=${studyUID}`)
+    document.getElementById('post_studies').innerHTML = 'Posted'
   }
 
   function postImgStudy() {
@@ -77,10 +78,10 @@
     let clientID = getCookie('clientid');
     document.getElementById('config').innerHTML = `
       <p>
-        The host name: <b>${confuri.hostname}</b>
+        Hostname: <b>${confuri.hostname}</b>
       </p>
       <p>
-        The client ID: <b>${clientID}</b>
+        Client ID: <b>${clientID}</b>
       </p>
     `
   }
@@ -89,10 +90,10 @@
     let userInfo = JSON.parse(httpGet(`${window.location.origin}/user_info`))
     let study = JSON.parse(httpGet(`${window.location.origin}/studies`))
     document.getElementById('user').innerHTML = `<p>Welcome <b>${userInfo.name}</b></p>
-      <p>You have access at the study 
-        <b>${study[0]['00081030'] !== undefined ? study[0]['00081030']['Value'][0] : study[0]['0020000D']['Value'][0]}</b>
-        with the patient name 
-        <b>${study[0]['00100010']['Value'][0]['Alphabetic']}</b></p>
+      <p>You have access to the study 
+        <b>${study[0]['00081030'] !== undefined ? study[0]['00081030']['Value'][0] : study[0]['0020000D']['Value'][0]}</b><br />
+        Patient name: <b>${study[0]['00100010']['Value'][0]['Alphabetic']}</b>
+      </p>
     `
   }
 

@@ -90,7 +90,7 @@ function main () {
             resolve('Set report done')
           }
         }).catch(err => {
-          console.log(err)
+          tools.responseTextPlain(response, 400, "An error")
         })
         break;
       case '/wsi-viewer':
@@ -107,9 +107,9 @@ function main () {
         break;
       case '/series':
         new Promise(function (resolve, reject) {
-          let cookie = session.readCookie(request.headers.cookie, request.headers['x-xsrf-token'])
+          let cookie = tryReadCookie(request.headers.cookie, request.headers['x-xsrf-token'])
           if (cookie === -1) {
-            reject("Not authorized")
+            reject(new Error('Unauthorized'))
           }
           getConfFromCookie(cookie).then(res => {
             let studyUID = tools.getParameterByName('studyUID', query)
@@ -125,18 +125,17 @@ function main () {
         }).then(res => {
           tools.responseJSON(response, 200, JSON.stringify(res.data))
         }).catch(err => {
-          console.log(err)
-          tools.responseTextPlain(response, 500, "An error")
+          generateError(response, err)
         })
         break;
       case '/studies':
         new Promise(function (resolve, reject) {
-          let cookie = session.readCookie(request.headers.cookie, request.headers['x-xsrf-token'])
+          let cookie = tryReadCookie(request.headers.cookie, request.headers['x-xsrf-token'])
           if (cookie === -1) {
-            reject("Not authorized")
+            reject(new Error('Unauthorized'))
           }
           getConfFromCookie(cookie).then(res => {
-            let urlStudies = `${res.data.dicomweb_endpoint}/studies`
+            let urlStudies = `${res.data.dicomweb_endpoint}/studies?includefield=00081030`
             customrequests.getBearer(urlStudies, cookie.decryptAccessToken).then(res => {
               resolve(res)
             }).catch(err => {
@@ -148,14 +147,14 @@ function main () {
         }).then(res => {
           tools.responseJSON(response, 200, JSON.stringify(res.data))
         }).catch(err => {
-          tools.responseTextPlain(response, 500, err)
+          generateError(response, err)
         })
         break;
       case '/configuration_kheops':
         new Promise(function (resolve, reject) {
-          let cookie = session.readCookie(request.headers.cookie, request.headers['x-xsrf-token'])
+          let cookie = tryReadCookie(request.headers.cookie, request.headers['x-xsrf-token'])
           if (cookie === -1) {
-            reject("Not authorized")
+            reject(new Error('Unauthorized'))
           }
           axios.get(cookie.confuri).then(res => {
             resolve(res)
@@ -165,15 +164,14 @@ function main () {
         }).then(res => {
           tools.responseJSON(response, 200, JSON.stringify(res.data))
         }).catch(err => {
-          tools.responseTextPlain(response, 500, err)
-          console.log(err)
+          generateError(response, err)
         })
         break;
       case '/user_info':
         new Promise(function (resolve, reject) {
-          let cookie = session.readCookie(request.headers.cookie, request.headers['x-xsrf-token'])
+          let cookie = tryReadCookie(request.headers.cookie, request.headers['x-xsrf-token'])
           if (cookie === -1) {
-            reject("Not authorized")
+            reject(new Error('Unauthorized'))
           }
           getConfFromCookie(cookie).then(res => {
             customrequests.getBearer(res.data.userinfo_endpoint, cookie.decryptAccessToken).then(res => {
@@ -188,24 +186,29 @@ function main () {
         }).then(res => {
           tools.responseJSON(response, 200, JSON.stringify(res.data))
         }).catch(err => {
-          tools.responseTextPlain(response, 500, err)
-          console.log(err)
+          generateError(response, err)
         })
         break;
       case '/redirect':
-        let cookie = session.readCookie(request.headers.cookie, request.headers['x-xsrf-token'])
-        if (cookie === -1) {
-          reject("Not authorized")
-        }
-        tools.responseJSON(response, 200, JSON.stringify({ 'redirect_uri': cookie.returnuri }))
-
+        new Promise(function (resolve, reject) {
+          let cookie = tryReadCookie(request.headers.cookie, request.headers['x-xsrf-token'])
+          if (cookie === -1) {
+            reject(new Error('Unauthorized'))
+          }
+          resolve(cookie)
+        }).then((res) => {
+          let cookie = res
+          tools.responseJSON(response, 200, JSON.stringify({ 'redirect_uri': cookie.returnuri }))
+        }).catch((err) => {
+          generateError(response, err)
+        })
         break;
       case '/post_pdf':
         new Promise(function (resolve, reject) {
           let studyUID_postPDF = tools.getParameterByName('studyUID', query)
-          let cookie = session.readCookie(request.headers.cookie, request.headers['x-xsrf-token'])
+          let cookie = tryReadCookie(request.headers.cookie, request.headers['x-xsrf-token'])
           if (cookie === -1) {
-            reject("Not authorized")
+            reject(new Error('Unauthorized'))
           }
           getConfFromCookie(cookie).then(res => {
             let currentConfiguration = res.data
@@ -220,11 +223,7 @@ function main () {
           })
 
         }).catch(err => {
-          if (err === 'Not authorized') {
-            tools.responseTextPlain(response, 401, err)
-          } else {
-            tools.responseTextPlain(response, 500, err)
-          }
+          generateError(response, err)
         })
         break;
       default:
@@ -235,8 +234,25 @@ function main () {
   console.log(myaddr + "/\nCTRL + C to shutdown");
 }
 
+function tryReadCookie(cookie, token) {
+  try {
+    return session.readCookie(cookie, token)
+  }
+  catch (err) {
+    return -1
+  }
+}
+
 function getConfFromCookie(cookie) {
   return axios.get(cookie.confuri)
+}
+
+function checkUrl(firstUrl, secondUrl) {
+  firstUrlParse = url.parse(firstUrl)
+  secondUrlParse = url.parse(secondUrl)
+  return (firstUrlParse.schema === secondUrlParse.schema
+    && firstUrlParse.port === secondUrlParse.port 
+    && firstUrlParse.hostname === secondUrlParse.hostname)
 }
 
 function setReport(response, filename, query) {
@@ -245,6 +261,9 @@ function setReport(response, filename, query) {
   }
   var urlConfig = tools.getParameterByName('conf_uri', query)
   var urlReturn = tools.getParameterByName('return_uri', query)
+  if (checkUrl(urlConfig, urlReturn) === false) {
+    return -1
+  }
   var accessCode = tools.getParameterByName('code', query)
   var clientID = tools.getParameterByName('client_id', query)
   var studyUID = tools.getParameterByName('studyUID', query)
@@ -258,7 +277,6 @@ function setReport(response, filename, query) {
       let currentConfiguration = res.data
       var urlPort = port === '80' || port === '443' ? '' : ':' + port
       tokens.getTokenSR(currentConfiguration, privKey, clientID, jwkID, accessCode, `${scheme}://${host}${urlPort}/report.html`).then(res => {
-
         let dataAccessToken = res.data
         let setCookie = session.generateCookie(urlInformations.href, urlReturn, studyUID, clientID, dataAccessToken)
         let headers = {}
@@ -269,18 +287,12 @@ function setReport(response, filename, query) {
           response.writeHead(302, headers);
           response.end();
         } else {
-          tools.responseTextPlain(response, 500, 'Cant create an access')
+          tools.responseTextPlain(response, 400, 'Cant create an access')
         }
 
       }).catch(err => {
-        if (err.response !== undefined) {
-          console.log(err.response.data)
-          var responseJSON = JSON.stringify(err.response.data);
-          tools.responseJSON(response, err.response.status, responseJSON)
-        } else {
-          console.log(err)
-        }
-        return -1
+        console.log(err)
+        generateError(response, err)
       })
 
     })
@@ -288,9 +300,21 @@ function setReport(response, filename, query) {
     const error = {}
     error['error'] = 'url config not valid'
     var responseJSON = JSON.stringify({error});
-    tools.responseJSON(response, 500, responseJSON)
+    tools.responseJSON(response, 400, responseJSON)
     return -1
   }
+}
+
+function generateError(response, err) {
+  if (err !== undefined && err.message !== undefined && err.message === 'Unauthorized') {
+    tools.responseTextPlain(response, 401, "Unauthorized")
+  } else if (err.response !== undefined && err.response.status !== undefined && err.response.data !== undefined) {
+    var responseJSON = JSON.stringify(err.response.data);
+    tools.responseJSON(response, err.response.status, responseJSON)
+  } else {
+    tools.responseTextPlain(response, 500, "An error")
+  }
+  return -1
 }
 
 function checkQueryParameters(response, query) {
@@ -305,7 +329,7 @@ function checkQueryParameters(response, query) {
       !query.includes('client_id') ? 'client_id' : ''
     ]
     var responseJSON = JSON.stringify({error});
-    tools.responseJSON(response, 500, responseJSON)
+    tools.responseJSON(response, 400, responseJSON)
     return -1
   }
 }
@@ -318,7 +342,7 @@ function parseUrlConfig(response, urlConfig) {
     const error = {}
     error['error'] = 'Impossible to parse the url config'
     var responseJSON = JSON.stringify({error});
-    tools.responseJSON(response, 500, responseJSON)
+    tools.responseJSON(response, 400, responseJSON)
     return -1
   }
 }

@@ -57,21 +57,20 @@ module.exports = {
     },
     readFileWeb: function (filename, response, setCookie='') {
       var contentTypesByExtension = {
+        '.ico': "image/x-icon",
         '.html': "text/html",
         '.css':  "text/css",
         '.js':   "text/javascript"
       };
-  
+
+      if (fs.existsSync(filename) && fs.statSync(filename).isDirectory()) filename += 'index.html';
       fs.exists(filename, function(exists) {
-  
         if(!exists) {
           response.writeHead(404, {"Content-Type": "text/plain"});
           response.write("404 Not Found\n");
           response.end();
           return;
         }
-  
-        if (fs.statSync(filename).isDirectory()) filename += 'index.html';
   
         fs.readFile(filename, "binary", function(err, file) {
           if(err) {

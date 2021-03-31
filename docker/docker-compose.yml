@@ -19,20 +19,8 @@ services:
     image: nginx:1.14-alpine
     container_name: nginx
     ports:
-      - "80:80"
-      - "443:443"
+      - "8081:80"
     volumes:
       - ./nginxconf:/etc/nginx/
     depends_on:
       - reportprovider
-    secrets:
-      - privkey1.pem
-      - fullchain1.pem
-
-secrets:
-  privkey1.pem:
-    file: secrets/privkey1.pem
-  fullchain1.pem:
-    file: secrets/fullchain1.pem
-  privkey.pem:
-    file: secrets/privkey.pem

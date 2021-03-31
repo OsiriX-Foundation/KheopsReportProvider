@@ -6,7 +6,7 @@ services:
     env_file: docker-compose.env
     restart: always
     extra_hosts:
-      - "demo.kheops.online:10.5.5.32"
+      - "demo.kheops.online:10.5.5.31"
       - "test2.kheops.online:10.5.5.28"
       - "test.kheops.online:10.5.5.27"
       - "lavim.kheops.online:10.5.7.3"
@@ -14,6 +14,8 @@ services:
       - "aneux.kheops.online:10.5.7.9"
     secrets:
       - privkey.pem
+    networks:
+      - reportprovider-network
 
   nginx:
     image: nginx:1.18-alpine
@@ -28,6 +30,8 @@ services:
     secrets:
       - privkey1.pem
       - fullchain1.pem
+    networks:
+      - reportprovider-network
 
 secrets:
   privkey1.pem:
@@ -36,3 +40,11 @@ secrets:
     file: secrets/fullchain1.pem
   privkey.pem:
     file: secrets/privkey.pem
+
+networks:
+  reportprovider-network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: "172.20.100.0/24"

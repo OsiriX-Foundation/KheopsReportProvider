@@ -6,12 +6,12 @@ services:
     env_file: docker-compose.env
     restart: always
     extra_hosts:
-      - "demo.kheops.online:10.5.5.31"
-      - "test2.kheops.online:10.5.5.28"
-      - "test.kheops.online:10.5.5.27"
-      - "lavim.kheops.online:10.5.7.3"
-      - "lavim.unige.ch:10.5.7.3"
-      - "aneux.kheops.online:10.5.7.9"
+      - "demo.kheops.online:10.5.7.30"
+      - "test2.kheops.online:10.5.7.30"
+      - "test.kheops.online:10.5.7.30"
+      - "lavim.kheops.online:10.5.7.30"
+      - "lavim.unige.ch:10.5.7.30"
+      - "aneux.kheops.online:10.5.7.30"
     networks:
       - reportprovider-network
     secrets:

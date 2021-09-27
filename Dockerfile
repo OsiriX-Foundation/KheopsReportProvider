@@ -10,4 +10,4 @@ COPY . .
 RUN mkdir keys
 
 EXPOSE 80
-CMD ["./docker-entrypoint.sh"]
+#CMD ["./docker-entrypoint.sh"]

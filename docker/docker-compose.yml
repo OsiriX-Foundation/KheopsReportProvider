@@ -1,19 +1,20 @@
 version: "3.1"
 services:
-  reportprovider:
-    image: osirixfoundation/kheops-report-provider:viewer
-    container_name: reportprovider
+  reportprovidermove:
+    build: ../../KheopsReportProvider
+    # TODO: Change 'viewer' with eg 'move'
+    # image: osirixfoundation/kheops-report-provider:viewer
+    container_name: reportprovidermove
     env_file: docker-compose.env
     restart: always
     extra_hosts:
       - "demo.kheops.online:10.5.7.30"
-      - "test2.kheops.online:10.5.7.30"
       - "test.kheops.online:10.5.7.30"
       - "lavim.kheops.online:10.5.7.30"
       - "lavim.unige.ch:10.5.7.30"
       - "aneux.kheops.online:10.5.7.30"
     networks:
-      - reportprovider-network
+      - reportprovidermove-network
     secrets:
       - privkey.pem
 
@@ -25,18 +26,19 @@ services:
     volumes:
       - ./nginxconf:/etc/nginx/
     depends_on:
-      - reportprovider
+      - reportprovidermove
     networks:
-      - reportprovider-network
+      - reportprovidermove-network
 
 secrets:
   privkey.pem:
     file: secrets/privkey.pem
 
 networks:
-  reportprovider-network:
+  reportprovidermove-network:
     driver: bridge
     ipam:
       driver: default
       config:
+#       TODO: Change this subnet?
         - subnet: "172.20.100.0/24"

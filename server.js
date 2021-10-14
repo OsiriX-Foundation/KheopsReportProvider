@@ -29,14 +29,10 @@ var host
 if (process.env.HOST !== undefined) {
   host = process.env.HOST;
 } else {
-  host = '10.195.108.50'
+  host = '192.168.1.22'
 }
 var port
-if (process.env.PORT !== undefined) {
-  port = process.env.PORT;
-} else {
-  port = '80'
-}
+port = '1234'
 
 const myaddr = `${scheme}://${host}${port === '80' || port === '443' ? '' : ':' + port}`
 
@@ -94,6 +90,7 @@ function main () {
         })
         break;
       case '/wsi-viewer':
+        console.log("test")
         let wsiViewerFile = path.join(process.cwd(), '/viewer/viewer.html')
         tools.readFileWeb(wsiViewerFile, response)
         break;
@@ -229,7 +226,13 @@ function main () {
       default:
         tools.readFileWeb(filename, response);
     }
-  }).listen(parseInt(80, 10));
+  //  Change string '80' to update Port
+  }).listen({
+    host: '192.168.1.22',
+    port: 1234,
+  });
+
+      // .listen(parseInt(80, 10));
 
   console.log(myaddr + "/\nCTRL + C to shutdown");
 }

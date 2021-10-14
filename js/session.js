@@ -10,7 +10,7 @@ module.exports = {
     const hashToken = hash(tokenSR.access_token + conf_uri + clientID + return_uri)
     const sessionState = generateSessionState()
     return {
-      'cookie': [`studyUID=${studyUID}; Secure; SameSite=Strict`, `confuri=${conf_uri}; Secure; SameSite=Strict`, `returnuri=${return_uri}; Secure; SameSite=Strict`, `clientid=${clientID}; Secure; SameSite=Strict`, `accesstoken=${encryptToken}; Expires=${new Date(Date.now() + 3600000).toUTCString()}; HttpOnly; Secure; SameSite=Strict`],
+      'cookie': [`studyUID=${studyUID}`, `confuri=${conf_uri}`, `returnuri=${return_uri}`, `clientid=${clientID}`, `accesstoken=${encryptToken}; Expires=${new Date(Date.now() + 3600000).toUTCString()}; HttpOnly;`],
       'sessionState': sessionState,
       'state': hashToken
     }

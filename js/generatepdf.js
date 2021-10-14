@@ -7,18 +7,27 @@ const tools = require('./tools')
 
 const tagEncapsulatedPDF = {
   necessaryTag: [
-    "00100010",
-    "00100020",
-    "00100030",
-    "00100040",
+    "00100010", // Patient name
+    "00100020", // Patient ID
+    "00100030", // Patient Birth Date
+    "00100040", // Patient sex
     "0020000D",
     "00080020",
     "00080030",
-    "00080090",
+    "00080090", // Referring Physician's name
     "00200010",
-    "00080050",
+    "00080050", // Accession number
     "00080005",
-    "00200010"
+    "00200010",
+    "00081030", // Study description
+    "00080201", // Timezone offset
+    "00080201", // Timezone offset
+    "0020000E", // Series Instance UID
+    "00080060", // Modality
+    "0008103E", // Series Description
+    "00200011", // Series Number
+    "00180015", // Body Part Examined
+
   ],
   createTag: [
     { tag: "00080060", "vr":"CS", value: ["DOC"]},
@@ -42,7 +51,7 @@ const tagEncapsulatedPDF = {
   tagStudiesUID: '0020000D',
   tagSeriesUID: '0020000E',
   tagSOPUID: '00080018',
-  modelBulkDataUri: 'http://kheops/dcm4chee-arc/aets/DCM4CHEE/rs',
+  modelBulkDataUri: 'http://127.0.0.1/dcm4chee-arc/aets/DCM4CHEE/rs',
   transferSyntax: '1.2.840.10008.1.2.4.50'
 }
 
@@ -58,7 +67,7 @@ module.exports = {
       postPDF(urlStudy, config, persistStudy.data[0], pdfData).then(res => {
         tools.responseTextPlain(response, 200, res.data)
       }).catch(err => {
-        tools.responseTextPlain(response, 500, err)
+        tools.responseTextPlain(response, 500, err.message)
       })
     })
     const config = generateHeaders(TokenSR)

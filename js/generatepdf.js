@@ -58,7 +58,7 @@ module.exports = {
       postPDF(urlStudy, config, persistStudy.data[0], pdfData).then(res => {
         tools.responseTextPlain(response, 200, res.data)
       }).catch(err => {
-        tools.responseTextPlain(response, 500, err)
+        tools.responseTextPlain(response, 500, err.message)
       })
     })
     const config = generateHeaders(TokenSR)

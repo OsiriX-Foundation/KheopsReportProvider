@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Report provider - Copy</title>
+    </head>
+
+    <body onload="init()">
+        <h1>Report provider - Copy</h1>
+        <div id="user"></div>
+        <div id="config"></div>
+
+        <button onclick="httpGet(`${window.location.origin}/configuration_kheops`, 'info')">Kheops configuration</button>
+        <button onclick="getStudy()">Study</button>
+        <button onclick="getSeries()">Series</button>
+        <button onclick="clearTag('info')">Clear</button>
+
+        <div id="info"></div>
+
+        <div id="load"></div>
+
+        <br/>
+
+            <label for="kheops_token">Kheops token:</label>
+            <textarea id="kheops_token" name="kheops_token" rows="1" cols="50"></textarea>
+
+            <br/>
+
+            <label for="kheops_url">Kheops API URL:</label>
+            <textarea id="kheops_url" name="kheops_url" rows="1" cols="50"></textarea>
+
+            <br/>
+            <br/>
+
+            <div>
+                <button onclick="copyStudy()">Send study</button>
+                <div id="post_studies"></div>
+            </div>
+
+        <br/>
+        <div>
+            <select id="listSeries"></select>
+            <button onclick="copySeries()">Send selected series</button>
+        </div>
+        <br/>
+
+        <div>
+            <button onclick="redirect()">Back to KHEOPS</button>
+        </div>
+    </body>
+</html>
+
+<script>
+    function redirect() {
+        let resp = httpGet(`${window.location.origin}/redirect`)
+    }
+
+    function clearTag(tag) {
+        if (tag !== '') {
+            document.getElementById(tag).innerHTML = ""
+        }
+    }
+
+    function getStudy() {
+        let params = (new URL(document.location)).searchParams;
+        let studyUID = getCookie('studyUID');
+        httpGet(`${window.location.origin}/studies?studyUID=${studyUID}`, 'info')
+    }
+
+    function getSeries() {
+        let params = (new URL(document.location)).searchParams;
+        let studyUID = getCookie('studyUID');
+        httpGet(`${window.location.origin}/series?studyUID=${studyUID}`, 'info')
+    }
+
+    function copyStudy() {
+        let studyUID = getCookie('studyUID');
+        let kheopsUrl = document.getElementById('kheops_url').value
+        let kheopsToken = document.getElementById('kheops_token').value
+        httpPost(`${window.location.origin}/copy_study?studyUID=${studyUID}&kheopsUrl=${kheopsUrl}&kheopsToken=${kheopsToken}`)
+        // TODO: This shouldn't be automatic
+        document.getElementById('post_studies').innerHTML = 'Posted'
+    }
+
+    function init() {
+        loadStudies()
+        loadUserinfo()
+        configInfo()
+    }
+
+    function configInfo() {
+        let confuri = new URL(getCookie('confuri'));
+        let clientID = getCookie('clientid');
+        document.getElementById('config').innerHTML = `
+      <p>
+        Hostname: <b>${confuri.hostname}</b>
+      </p>
+      <p>
+        Client ID: <b>${clientID}</b>
+      </p>
+    `
+    }
+
+    function loadUserinfo() {
+        let userInfo = JSON.parse(httpGet(`${window.location.origin}/user_info`))
+        let study = JSON.parse(httpGet(`${window.location.origin}/studies`))
+        document.getElementById('user').innerHTML = `<p>Welcome <b>${userInfo.name}</b></p>
+          <p>You have access to the study
+            <b>${study[0]['00081030'] !== undefined ? study[0]['00081030']['Value'][0] : study[0]['0020000D']['Value'][0]}</b><br />
+            Patient name: <b>${study[0]['00100010']['Value'][0]['Alphabetic']}</b>
+          </p>
+        `
+    }
+
+    function loadStudies() {
+        let params = (new URL(document.location)).searchParams;
+        let studyUID = getCookie('studyUID');
+        let series = JSON.parse(httpGet(`${window.location.origin}/series?studyUID=${studyUID}`))
+        series.forEach(val => {
+            var option = document.createElement('option');
+            if ('0008103E' in val) {
+                option.text = val['0008103E']['Value'][0]
+            } else {
+                option.text = val['0020000E']['Value'][0];
+            }
+            document.querySelector('#listSeries').add(option, null);
+        })
+    }
+
+    function httpPost(theUrl, tag='') {
+        if (tag !== '') {
+            document.getElementById(tag).innerHTML = ""
+        }
+        let state = getUrlParameter('state')
+        var xmlHttp = new XMLHttpRequest();
+        xmlHttp.open( "POST", theUrl, false ); // false for synchronous request
+        xmlHttp.setRequestHeader('X-XSRF-TOKEN', state)
+        xmlHttp.send( null );
+        var response = xmlHttp.responseText;
+        if (tag !== '') {
+            document.getElementById(tag).innerHTML = response
+        }
+        return response;
+    }
+
+    function httpGet(theUrl, tag='') {
+        if (tag !== '') {
+            document.getElementById(tag).innerHTML = ""
+        }
+        let state = getUrlParameter('state')
+        var xmlHttp = new XMLHttpRequest();
+        xmlHttp.open( "GET", theUrl, false ); // false for synchronous request
+        xmlHttp.setRequestHeader('X-XSRF-TOKEN', state)
+        xmlHttp.send( null );
+        var response = xmlHttp.responseText;
+        if (tag !== '') {
+            document.getElementById(tag).innerHTML = response
+        }
+        let responseJSON = JSON.parse(response)
+        if ('redirect_uri' in responseJSON) {
+            window.location.href = responseJSON['redirect_uri']
+        }
+        return response;
+    }
+
+    function getCookie(cname) {
+        var name = cname + "=";
+        var decodedCookie = decodeURIComponent(document.cookie);
+        var ca = decodedCookie.split(';');
+        for(var i = 0; i <ca.length; i++) {
+            var c = ca[i];
+            while (c.charAt(0) == ' ') {
+                c = c.substring(1);
+            }
+            if (c.indexOf(name) == 0) {
+                return c.substring(name.length, c.length);
+            }
+        }
+        return "";
+    }
+    function getUrlParameter(name) {
+        name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+        var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+        var results = regex.exec(location.search);
+        return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+    }
+</script>

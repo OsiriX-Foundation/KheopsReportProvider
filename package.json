@@ -10,7 +10,10 @@
     "jsonwebtoken": "^8.5.1",
     "pdfkit": "^0.9.1",
     "pem-jwk": "^2.0.0",
-    "uuid": "^3.3.2"
+    "uuid": "^3.3.2",
+    "express": "^4.17.1",
+    "express-session": "^1.17.2",
+    "body-parser": "^1.19.0"
   },
   "devDependencies": {},
   "scripts": {

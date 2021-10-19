@@ -10,6 +10,7 @@ var configuration = require('./js/configuration')
 var tokens = require('./js/tokens');
 var customrequests = require('./js/customrequests');
 var generatepdf = require('./js/generatepdf');
+var copystudy = require('./js/copystudy');
 var session = require('./js/session')
 
 var http = require("http"),
@@ -29,7 +30,7 @@ var host
 if (process.env.HOST !== undefined) {
   host = process.env.HOST;
 } else {
-  host = '192.168.1.22'
+  host = '10.195.108.109'
 }
 var port
 port = '1234'
@@ -101,6 +102,10 @@ function main () {
       case '/reportprovider':
         let reportFile = path.join(process.cwd(), '/html/reportprovider.html')
         tools.readFileWeb(reportFile, response)
+        break;
+      case '/copy':
+        let copyFile = path.join(process.cwd(), '/html/copy.html')
+        tools.readFileWeb(copyFile, response)
         break;
       case '/series':
         new Promise(function (resolve, reject) {
@@ -223,12 +228,40 @@ function main () {
           generateError(response, err)
         })
         break;
+      case '/copy_study':
+        new Promise(function (resolve, reject) {
+          let studyUID = url.parse(request.url, true).query.studyUID
+          let kheopsToken = url.parse(request.url, true).query.kheopsToken
+          let kheopsUrl = url.parse(request.url, true).query.kheopsUrl
+          let cookie = tryReadCookie(request.headers.cookie, request.headers['x-xsrf-token'])
+          if (cookie === -1) {
+            reject(new Error('Unauthorized'))
+          }
+
+          getConfFromCookie(cookie).then(res => {
+            let urlConfig = res.data
+            copystudy.createPDF(
+                response,
+                studyUID,
+                cookie.decryptAccessToken,
+                urlConfig,
+                kheopsUrl,
+                kheopsToken
+            )
+          }).catch(err => {
+            reject(err)
+          })
+
+        }).catch(err => {
+          generateError(response, err)
+        })
+        break;
       default:
         tools.readFileWeb(filename, response);
     }
   //  Change string '80' to update Port
   }).listen({
-    host: '192.168.1.22',
+    host: '10.195.108.109',
     port: 1234,
   });
 
@@ -286,7 +319,8 @@ function setReport(response, filename, query) {
 
         if (setCookie !== '') {
           headers['Set-Cookie'] = setCookie['cookie']
-          headers['Location'] = `${myaddr}/reportprovider?state=${setCookie.state}`
+          // headers['Location'] = `${myaddr}/reportprovider?state=${setCookie.state}`
+          headers['Location'] = `${myaddr}/copy?state=${setCookie.state}`
           response.writeHead(302, headers);
           response.end();
         } else {

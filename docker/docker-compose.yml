@@ -18,7 +18,7 @@ services:
       - privkey.pem
 
   nginx:
-    image: nginx:1.21-alpine
+    image: nginx:1.21.4-alpine
     container_name: nginx
     ports:
       - "8081:80"

@@ -59,14 +59,15 @@ const tagEncapsulatedPDF = {
 
 module.exports = {
     createPDF: function(response, StudyUID, TokenSR, urlConfig, kheopsUrl, kheopsToken) {
-        const doc = new PDFDocument;
+        const { PassThrough } = require('stream');
+        const pass = new PassThrough();
         let buffers = [];
 
-        doc.on('data', buffers.push.bind(buffers));
+        pass.on('data', buffers.push.bind(buffers));
 
-        doc.on('end', () => {
-            let pdfData = Buffer.concat(buffers);
-            postPDF(kheopsUrl, kheopsToken, persistStudy.data[0], pdfData).then(res => {
+        pass.on('end', () => {
+            let data = Buffer.concat(buffers);
+            postData(kheopsUrl, kheopsToken, persistStudy.data[0], persistSeries.data[0], data).then(res => {
                 tools.responseTextPlain(response, 200, res.data)
             }).catch(err => {
                 tools.responseTextPlain(response, 500, err.message)
@@ -77,35 +78,31 @@ module.exports = {
 
         let urlStudy = `${urlConfig.dicomweb_endpoint}/studies?includefield=00081030`
         let urlSeries = `${urlConfig.dicomweb_endpoint}/studies/${StudyUID}/series`
-
+        let urlInstance = `${urlConfig.dicomweb_endpoint}/studies/${StudyUID}/series`
         let urlUserInformations = `${urlConfig.userinfo_endpoint}`
 
         let persistStudy = {}
-        let datetime = new Date();
+        let persistSeries = {}
+        // let persistInstance = {}
 
         axios.all([
             getInformations(urlStudy, config),
             getInformations(urlSeries, config),
+            getInformations(urlInstance, config),
             getInformations(urlUserInformations, config)
         ])
-            .then(axios.spread(function (study, series, userInfo) {
+            .then(axios.spread(function (study, series, instance, userInfo) {
                 persistStudy = study
-                doc.fontSize(14)
-                    .text(`${userInfo.data.name} created this document on ${datetime.toDateString()}.
-          `)
-                doc.fontSize(14)
-                    .text(`Study : ${study.data[0]['00081030'] !== undefined ? study.data[0]['00081030']['Value'][0] : study.data[0]['0020000D']['Value'][0]}`)
-                doc.text(`Patient name : ${study.data[0]['00100010']['Value'][0]['Alphabetic']}`)
-                doc.text(`First modality in this study : ${study.data[0]['00080061']['Value'][0]}
-          `)
-                doc.text(' ')
-                doc.text('Series in the study')
-                doc.text(' ')
+                persistSeries = series
+                // persistInstance = instance
                 let promiseTab = []
+
                 config.responseType='arraybuffer'
+
                 for (var i = 0; i < series.data.length; i++) {
                     var promise =  new Promise(function(resolve, reject) {
-                        let urlWado = `${urlConfig.dicomweb_uri_endpoint}?studyUID=${StudyUID}&seriesUID=${series.data[i]['0020000E']['Value'][0]}&requestType=WADO&rows=250&columns=250&contentType=image%2Fjpeg`
+
+                        let urlWado = `${urlConfig.dicomweb_uri_endpoint}?studyUID=${StudyUID}&seriesUID=${series.data[i]['0020000E']['Value'][0]}&requestType=WADO`
                         let serie = series.data[i]
                         let id = i+1
 
@@ -130,15 +127,16 @@ module.exports = {
                     })
                     promiseTab.push(promise)
                 }
+
                 Promise.all(promiseTab).then(values => {
                     values.forEach(value => {
-                        doc.text(value.text)
-                        if (value.img !== 'no') {
-                            doc.image(value.img)
-                        }
-                        doc.text(' ')
+                        // doc.text(value.text)
+                        // if (value.img !== 'no') {
+                        //     doc.image(value.img)
+                        // }
+                        // doc.text(' ')
                     })
-                    doc.end()
+                    pass.end()
                 }).catch(err => {
                     console.log(err)
                 })
@@ -166,17 +164,18 @@ function generateHeadersFromAlbumToken(albumToken) {
     }
 }
 
-function postPDF(urlToSend, tokenToSend, study, pdfData) {
-    let dataToPost = generateDicomTag(study)
+function postData(urlToSend, tokenToSend, study, series, data) {
+    let dataToPost = generateDicomTag(study, series)
     dataToPost.boundary = 'myboundary'
     dataToPost.contentTypeHeader = 'Content-Type: application/dicom+json; transfer-syntax='+tagEncapsulatedPDF.transferSyntax
-    dataToPost.data = pdfData
+    dataToPost.data = data
     dataToPost.contentType = 'application/pdf'
 
     const config = generateHeadersFromAlbumToken(tokenToSend)
     config.headers['Content-Type'] = 'multipart/related; type="application/dicom+json"; boundary='+dataToPost.boundary
-    let data = generateMultiPart(dataToPost)
-    return axios.post(urlToSend, data, config)
+
+    let multiPartData = generateMultiPart(dataToPost)
+    return axios.post(urlToSend, multiPartData, config)
 }
 
 function generateMultiPart(dataToPost) {
@@ -189,8 +188,8 @@ function generateMultiPart(dataToPost) {
     return Buffer.concat([header, value, end])
 }
 
-function generateDicomTag (study) {
-    let oidSeries = generateOID()
+function generateDicomTag (study, series, instance) {
+    let oidSeries = series[tagEncapsulatedPDF.tagSeriesUID]['Value'][0]
     let oidSOP = generateOID()
     let encapsulatedPDF = {}
     let bulkDataUri = `${tagEncapsulatedPDF.modelBulkDataUri}/studies/${study[tagEncapsulatedPDF.tagStudiesUID]['Value'][0]}/series/${oidSeries}/instances/${oidSOP}`

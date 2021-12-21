@@ -30,7 +30,8 @@ var host
 if (process.env.HOST !== undefined) {
   host = process.env.HOST;
 } else {
-  host = '10.195.108.109'
+  // host = '10.195.108.109'
+  host = '192.168.1.22'
 }
 var port
 port = '1234'
@@ -261,7 +262,8 @@ function main () {
     }
   //  Change string '80' to update Port
   }).listen({
-    host: '10.195.108.109',
+    // host: '10.195.108.109',
+    host: '192.168.1.22',
     port: 1234,
   });
 
